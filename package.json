@@ -1,0 +1,31 @@
+{
+  "private": true,
+  "name": "fable-pixi-behaviors1",
+  "version": "1.0.0",
+  "main": "out/index.js",
+  "dependencies": {
+    "babel-runtime": "^6.11.6",
+    "fable-core": "^0.7.9",
+    "fable-powerpack": "latest",
+    "pixi.js": "^3.0.11"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "fable-compiler": "^0.7.9",
+    "fable-import-pixi": "^0.0.10",
+    "finalhandler": "^0.5.0",
+    "open": "0.0.5",
+    "rollup-plugin-replace": "^1.1.1",
+    "serve": "^1.4.0",
+    "browser-sync": "^2.11.1"    
+  },
+  "scripts": {
+    "start": "serve --port 4000",
+    "sync": "browser-sync start -c bs-config.js",
+    "build": "fable",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "François Nicaise",
+  "license": "MIT"
+}
