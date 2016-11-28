@@ -315,14 +315,14 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
 
   let addTrails() = 
     let addTotrails t = 
-      trails <- {sprite=t;dec=0.005;} :: trails //.[trails.Length] <- {sprite=t;dec=0.001;}
+      trails <- {sprite=t;dec=0.002;} :: trails //.[trails.Length] <- {sprite=t;dec=0.001;}
 
     rocketsGreen
     |> Seq.iter( fun( rocket : Sprite) ->
         getTexture "plus" 
         |> makeSprite
         |> setPosition rocket.position.x rocket.position.y
-        |> setAlpha 0.5
+        |> setAlpha 0.3
         |> setScale 0.2 0.2
         |> setAnchor rocket.anchor.x rocket.anchor.y
         |> setRotation rocket.rotation
@@ -334,8 +334,8 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
         getTexture "minus" 
         |> makeSprite
         |> setPosition rocket.position.x rocket.position.y
-        |> setAlpha 0.5
-        |> setScale 0.2 0.1
+        |> setAlpha 0.3
+        |> setScale 0.2 0.2
         |> setAnchor rocket.anchor.x rocket.anchor.y
         |> setRotation rocket.rotation
         |> addToContainer yellowContainer
