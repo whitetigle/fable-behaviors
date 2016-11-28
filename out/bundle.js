@@ -3905,7 +3905,7 @@ function updateLoop(renderer, stage) {
 
   var addTrails = function addTrails() {
     var addTotrails = function addTotrails(t) {
-      trails = new List$1(new Trail(t, 0.005), trails);
+      trails = new List$1(new Trail(t, 0.002), trails);
     };
 
     iterate(function (rocket) {
@@ -3914,7 +3914,7 @@ function updateLoop(renderer, stage) {
         return function (arg10) {
           return clo1(arg10);
         };
-      }(greenContainer)(setRotation(rocket.rotation)(setAnchor(rocket.anchor.x)(rocket.anchor.y)(setScale(0.2)(0.2)(setAlpha(0.5)(setPosition(rocket.position.x)(rocket.position.y)(makeSprite(getTexture("plus")))))))));
+      }(greenContainer)(setRotation(rocket.rotation)(setAnchor(rocket.anchor.x)(rocket.anchor.y)(setScale(0.2)(0.2)(setAlpha(0.3)(setPosition(rocket.position.x)(rocket.position.y)(makeSprite(getTexture("plus")))))))));
     }, rocketsGreen);
     iterate(function (rocket) {
       addTotrails(function (arg00) {
@@ -3922,7 +3922,7 @@ function updateLoop(renderer, stage) {
         return function (arg10) {
           return clo1(arg10);
         };
-      }(yellowContainer)(setRotation(rocket.rotation)(setAnchor(rocket.anchor.x)(rocket.anchor.y)(setScale(0.2)(0.1)(setAlpha(0.5)(setPosition(rocket.position.x)(rocket.position.y)(makeSprite(getTexture("minus")))))))));
+      }(yellowContainer)(setRotation(rocket.rotation)(setAnchor(rocket.anchor.x)(rocket.anchor.y)(setScale(0.2)(0.2)(setAlpha(0.3)(setPosition(rocket.position.x)(rocket.position.y)(makeSprite(getTexture("minus")))))))));
     }, rocketsYellow);
   };
 
