@@ -6,3 +6,4 @@
 - `npm start` to fire up a local server and open the sample web page.
 - `npm run sync` to launch browser sync.
 
+Live version: https://whitetigle.github.io/fable-behaviors/
