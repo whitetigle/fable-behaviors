@@ -3965,7 +3965,7 @@ function updateLoop(renderer, stage) {
               }(localStorage.getItem(key)));
 
               if (cached.length <= 0) {
-                console.log("GitHub data not found in LocalStorage. Retrieveing data from GitHub");
+                console.log("GitHub data not found in LocalStorage. Retrieving data from GitHub");
 
                 (function (arg00) {
                   startImmediate(arg00);

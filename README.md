@@ -7,3 +7,5 @@
 - `npm run sync` to launch browser sync.
 
 Live version: https://whitetigle.github.io/fable-behaviors/
+
+[Note]: if nothing happens after a while. Open the debug console and remove the data from Local Storage under *https://whitetigle.github.io/fable-behaviors/* then refresh the page  

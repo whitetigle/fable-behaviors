@@ -392,7 +392,7 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
 
           match cached with 
             | x when x.Count <= 0 -> 
-              Browser.console.log ( "GitHub data not found in LocalStorage. Retrieveing data from GitHub")
+              Browser.console.log ( "GitHub data not found in LocalStorage. Retrieving data from GitHub")
               async {
                 try
                   let! records = GlobalFetch.fetch(url) |> Async.AwaitPromise
