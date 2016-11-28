@@ -82,6 +82,10 @@ type CodeFrequency = {
   deletion:float;
 }
 
+type Launcher = {
+  plus:float;
+  minus:float;
+}
 
 type Easing = Func<float, float, float, float, float>
 
@@ -104,19 +108,47 @@ module Behaviors =
                 else false
             else true
             |> Promise.lift)
-    let fadeOut(easeFunction: Easing, duration) =
+    let fadeOut(easeFunction: Easing, duration, onCompleted) =
         let mutable ms = 0.
         Behavior(fun s dt ->
             if s.alpha <1.
             then
-                ms <- ms + dt
-                let result = easeFunction.Invoke(ms, 0., 1., duration)
-                s.alpha <- result
-                if s.alpha > 1.
-                then s.alpha <- 1.; true
-                else false
-            else true
-            |> Promise.lift)
+              ms <- ms + dt
+              let result = easeFunction.Invoke(ms, 0., 1., duration)
+              s.alpha <- result
+              false
+            else 
+              if s.alpha > 1. then s.alpha <- 1.
+              onCompleted s
+              true
+          |> Promise.lift)
+    let curveTo(easeFunction: Easing, duration, radius, p:Point, onCompleted) =
+        let mutable ms = -1.
+        let mutable distance = 0.
+        let mutable a = 0.
+        let where = if JS.Math.random() > 0.5 then 1. else -1.
+        let curve = JS.Math.random() * 2. / 1000. * where
+        Behavior(fun s dt ->
+          let vx,vy = (p.x - s.position.x, p.y - s.position.y)
+          a <- JS.Math.atan2(vy,vx) + curve
+          if ms < 0. 
+          then
+            let vx,vy = (p.x - s.position.x, p.y - s.position.y)
+            distance <- JS.Math.sqrt(vx * vx + vy * vy)
+            false
+          else 
+            ms <- ms + dt
+            let result = easeFunction.Invoke(ms, 0., 1., duration)
+            let d = JS.Math.abs(distance) * ( 1. - result)
+            if result < 1. || d > radius 
+            then
+              let factor = if distance > 0. then -1. else 1.
+              s.position <- Point( p.x + d * JS.Math.cos(a) * factor, p.y + d * JS.Math.sin(a) * factor)
+              false
+            else 
+              onCompleted s
+              true
+        |> Promise.lift)          
     let alphaDeath(onCompleted) = Behavior(fun s _ ->
         if s.alpha <= 0.
         then (s :> IDisposable).Dispose(); onCompleted s; true
@@ -134,7 +166,7 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
   let mutable id = -1
   let mutable state : State = Loading
   let mutable resources  = Unchecked.defaultof<loaders.ResourceDictionary>
-  let mutable ghData = Unchecked.defaultof<Array>
+  let mutable launchers : Launcher list = []
   let mutable sprites : ESprite list = []
 
   // sprites
@@ -171,6 +203,7 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
   |]
     |> Seq.iter bindContainer
 
+  // sprite & ESprite helper functions
   let nextId() = 
     id <- id + 1
     sprintf "%i" id    
@@ -201,6 +234,7 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
     sprites <- [s] @ sprites
     s
     
+  // our update loop
   let update(currentState) =
     match currentState with 
     | Nothing -> State.Nothing
@@ -216,13 +250,20 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
           resources <- unbox<loaders.ResourceDictionary> r
           // parse json data to get nice array of CodeFrequencyData
           let rawData : ResizeArray<obj> = unbox json
-          ghData <-
+          let ghData =
             rawData
               |> Seq.map( fun(inValue) ->
                 let out : ResizeArray<float> = unbox inValue
+                Browser.console.log inValue
                 {timestamp=out.[0];deletion=out.[2];addition=out.[1]}
               )
-              |> Seq.toArray
+            
+          let sum = 
+            ghData 
+            |> Seq.map( fun(cd) -> cd.addition - cd.deletion ) 
+            |> Seq.sum
+
+          printfn "%f" sum
           
           state <- MainTitle
 
@@ -234,15 +275,19 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
         let loadRemoteJson r (url:string) =
           let now = DateTime.Today
           let key = sprintf "fable_behaviors_cache_%s" (now.ToShortDateString())
-          let cached = Browser.localStorage.getItem(key) |> unbox<string>
+          let cached : ResizeArray<obj>= 
+            Browser.localStorage.getItem(key)
+            |> function null -> "[]" | x -> unbox x 
+            |> JS.JSON.parse |> unbox
+
           match cached with 
-            | null -> 
+            | x when x.Count <= 0 -> 
               Browser.console.log ( "not found searching from github")
               async {
                 try
                   let! records = GlobalFetch.fetch(url) |> Async.AwaitPromise
                   let! json = records.json() |> Async.AwaitPromise
-                  Browser.localStorage.setItem(key, unbox<string>json)
+                  Browser.localStorage.setItem(key, JS.JSON.stringify json)
                   endLoadSequence r json
                 with
                 | error -> failwith( (sprintf "could not load json from url %s" url) )
@@ -299,9 +344,10 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
         |> addToContainer backgroundContainer
         |> ignore
 
+      
       planet <-
         getTexture "planet" 
-          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3000.)]
+          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3000., fun(s)-> printfn "done")]
           |> addToESprites
           |> addToContainer planetContainer
           |> setAnchor 0.5 0.5
@@ -310,23 +356,24 @@ let updateLoop(renderer:WebGLRenderer) (stage:Container) =
 
       title <- 
         getTexture "title2" 
-          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3000.)]
+          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3300., fun(s)-> printfn "done" )]
           |> addToESprites
           |> addToContainer planetContainer
           |> setAnchor 0.5 0.
           |> setPosition planet.position.x (planet.position.y + 50.) 
           |> setAlpha 0.
 
+      let launchNext s = 
+        printfn "done" 
+
       subtitle <- 
         getTexture "githubsmall" 
-          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3000.)]
+          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3600., launchNext)]
           |> addToESprites
           |> addToContainer planetContainer
           |> setAnchor 0.5 0.
           |> setPosition title.position.x (title.position.y + title.height + 5.) 
           |> setAlpha 0.
-
-
 
       Play
 
