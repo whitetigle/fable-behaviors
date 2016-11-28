@@ -9,23 +9,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-var _core = createCommonjsModule(function (module) {
-var core = module.exports = {version: '2.4.0'};
-if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
-});
-
-var core  = _core;
-var $JSON = core.JSON || (core.JSON = {stringify: JSON.stringify});
-var stringify$2 = function stringify$2(it){ // eslint-disable-line no-unused-vars
-  return $JSON.stringify.apply($JSON, arguments);
-};
-
-var stringify$1 = createCommonjsModule(function (module) {
-module.exports = { "default": stringify$2, __esModule: true };
-});
-
-var _JSON$stringify = unwrapExports(stringify$1);
-
 // 7.1.4 ToInteger
 var ceil  = Math.ceil;
 var floor = Math.floor;
@@ -64,6 +47,11 @@ var _global = createCommonjsModule(function (module) {
 var global = module.exports = typeof window != 'undefined' && window.Math == Math
   ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
 if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
+});
+
+var _core = createCommonjsModule(function (module) {
+var core = module.exports = {version: '2.4.0'};
+if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
 });
 
 var _aFunction = function(it){
@@ -176,7 +164,7 @@ var _hide = _descriptors ? function(object, key, value){
 };
 
 var global$1    = _global;
-var core$1      = _core;
+var core      = _core;
 var ctx       = _ctx;
 var hide$1      = _hide;
 var PROTOTYPE = 'prototype';
@@ -188,7 +176,7 @@ var $export$1 = function(type, name, source){
     , IS_PROTO  = type & $export$1.P
     , IS_BIND   = type & $export$1.B
     , IS_WRAP   = type & $export$1.W
-    , exports   = IS_GLOBAL ? core$1 : core$1[name] || (core$1[name] = {})
+    , exports   = IS_GLOBAL ? core : core[name] || (core[name] = {})
     , expProto  = exports[PROTOTYPE]
     , target    = IS_GLOBAL ? global$1 : IS_STATIC ? global$1[name] : (global$1[name] || {})[PROTOTYPE]
     , key, own, out;
@@ -596,9 +584,467 @@ for(var collections = ['NodeList', 'DOMTokenList', 'MediaList', 'StyleSheetList'
   Iterators$1[NAME] = Iterators$1.Array;
 }
 
+var f$1 = _wks;
+
+var _wksExt = {
+	f: f$1
+};
+
+var iterator$2 = _wksExt.f('iterator');
+
+var iterator = createCommonjsModule(function (module) {
+module.exports = { "default": iterator$2, __esModule: true };
+});
+
+var _meta = createCommonjsModule(function (module) {
+var META     = _uid('meta')
+  , isObject = _isObject
+  , has      = _has
+  , setDesc  = _objectDp.f
+  , id       = 0;
+var isExtensible = Object.isExtensible || function(){
+  return true;
+};
+var FREEZE = !_fails(function(){
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function(it){
+  setDesc(it, META, {value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  }});
+};
+var fastKey = function(it, create){
+  // return primitive with prefix
+  if(!isObject(it))return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return 'F';
+    // not necessary to add metadata
+    if(!create)return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function(it, create){
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return true;
+    // not necessary to add metadata
+    if(!create)return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function(it){
+  if(FREEZE && meta.NEED && isExtensible(it) && !has(it, META))setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY:      META,
+  NEED:     false,
+  fastKey:  fastKey,
+  getWeak:  getWeak,
+  onFreeze: onFreeze
+};
+});
+
+var global$5         = _global;
+var core$1           = _core;
+var LIBRARY$1        = _library;
+var wksExt$1         = _wksExt;
+var defineProperty$1 = _objectDp.f;
+var _wksDefine = function(name){
+  var $Symbol = core$1.Symbol || (core$1.Symbol = LIBRARY$1 ? {} : global$5.Symbol || {});
+  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty$1($Symbol, name, {value: wksExt$1.f(name)});
+};
+
+var getKeys$1   = _objectKeys;
+var toIObject$4 = _toIobject;
+var _keyof = function(object, el){
+  var O      = toIObject$4(object)
+    , keys   = getKeys$1(O)
+    , length = keys.length
+    , index  = 0
+    , key;
+  while(length > index)if(O[key = keys[index++]] === el)return key;
+};
+
+var f$2 = Object.getOwnPropertySymbols;
+
+var _objectGops = {
+	f: f$2
+};
+
+var f$3 = {}.propertyIsEnumerable;
+
+var _objectPie = {
+	f: f$3
+};
+
+var getKeys$2 = _objectKeys;
+var gOPS    = _objectGops;
+var pIE     = _objectPie;
+var _enumKeys = function(it){
+  var result     = getKeys$2(it)
+    , getSymbols = gOPS.f;
+  if(getSymbols){
+    var symbols = getSymbols(it)
+      , isEnum  = pIE.f
+      , i       = 0
+      , key;
+    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))result.push(key);
+  } return result;
+};
+
 var cof$1 = _cof;
+var _isArray = Array.isArray || function isArray(arg){
+  return cof$1(arg) == 'Array';
+};
+
+var $keys$2      = _objectKeysInternal;
+var hiddenKeys = _enumBugKeys.concat('length', 'prototype');
+
+var f$5 = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
+  return $keys$2(O, hiddenKeys);
+};
+
+var _objectGopn = {
+	f: f$5
+};
+
+var toIObject$5 = _toIobject;
+var gOPN$1      = _objectGopn.f;
+var toString$2  = {}.toString;
+
+var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
+  ? Object.getOwnPropertyNames(window) : [];
+
+var getWindowNames = function(it){
+  try {
+    return gOPN$1(it);
+  } catch(e){
+    return windowNames.slice();
+  }
+};
+
+var f$4 = function getOwnPropertyNames(it){
+  return windowNames && toString$2.call(it) == '[object Window]' ? getWindowNames(it) : gOPN$1(toIObject$5(it));
+};
+
+var _objectGopnExt = {
+	f: f$4
+};
+
+var pIE$1            = _objectPie;
+var createDesc$2     = _propertyDesc;
+var toIObject$6      = _toIobject;
+var toPrimitive$2    = _toPrimitive;
+var has$6            = _has;
+var IE8_DOM_DEFINE$1 = _ie8DomDefine;
+var gOPD$1           = Object.getOwnPropertyDescriptor;
+
+var f$6 = _descriptors ? gOPD$1 : function getOwnPropertyDescriptor(O, P){
+  O = toIObject$6(O);
+  P = toPrimitive$2(P, true);
+  if(IE8_DOM_DEFINE$1)try {
+    return gOPD$1(O, P);
+  } catch(e){ /* empty */ }
+  if(has$6(O, P))return createDesc$2(!pIE$1.f.call(O, P), O[P]);
+};
+
+var _objectGopd = {
+	f: f$6
+};
+
+var global$4         = _global;
+var has$5            = _has;
+var DESCRIPTORS    = _descriptors;
+var $export$2        = _export;
+var redefine$1       = _redefine;
+var META           = _meta.KEY;
+var $fails         = _fails;
+var shared$1         = _shared;
+var setToStringTag$2 = _setToStringTag;
+var uid$1            = _uid;
+var wks            = _wks;
+var wksExt         = _wksExt;
+var wksDefine      = _wksDefine;
+var keyOf          = _keyof;
+var enumKeys       = _enumKeys;
+var isArray$1        = _isArray;
+var anObject$3       = _anObject;
+var toIObject$3      = _toIobject;
+var toPrimitive$1    = _toPrimitive;
+var createDesc$1     = _propertyDesc;
+var _create        = _objectCreate;
+var gOPNExt        = _objectGopnExt;
+var $GOPD          = _objectGopd;
+var $DP            = _objectDp;
+var $keys$1          = _objectKeys;
+var gOPD           = $GOPD.f;
+var dP$3             = $DP.f;
+var gOPN           = gOPNExt.f;
+var $Symbol        = global$4.Symbol;
+var $JSON          = global$4.JSON;
+var _stringify     = $JSON && $JSON.stringify;
+var PROTOTYPE$2      = 'prototype';
+var HIDDEN         = wks('_hidden');
+var TO_PRIMITIVE   = wks('toPrimitive');
+var isEnum         = {}.propertyIsEnumerable;
+var SymbolRegistry = shared$1('symbol-registry');
+var AllSymbols     = shared$1('symbols');
+var OPSymbols      = shared$1('op-symbols');
+var ObjectProto$1    = Object[PROTOTYPE$2];
+var USE_NATIVE     = typeof $Symbol == 'function';
+var QObject        = global$4.QObject;
+// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
+var setter = !QObject || !QObject[PROTOTYPE$2] || !QObject[PROTOTYPE$2].findChild;
+
+// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
+var setSymbolDesc = DESCRIPTORS && $fails(function(){
+  return _create(dP$3({}, 'a', {
+    get: function(){ return dP$3(this, 'a', {value: 7}).a; }
+  })).a != 7;
+}) ? function(it, key, D){
+  var protoDesc = gOPD(ObjectProto$1, key);
+  if(protoDesc)delete ObjectProto$1[key];
+  dP$3(it, key, D);
+  if(protoDesc && it !== ObjectProto$1)dP$3(ObjectProto$1, key, protoDesc);
+} : dP$3;
+
+var wrap = function(tag){
+  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE$2]);
+  sym._k = tag;
+  return sym;
+};
+
+var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function(it){
+  return typeof it == 'symbol';
+} : function(it){
+  return it instanceof $Symbol;
+};
+
+var $defineProperty = function defineProperty(it, key, D){
+  if(it === ObjectProto$1)$defineProperty(OPSymbols, key, D);
+  anObject$3(it);
+  key = toPrimitive$1(key, true);
+  anObject$3(D);
+  if(has$5(AllSymbols, key)){
+    if(!D.enumerable){
+      if(!has$5(it, HIDDEN))dP$3(it, HIDDEN, createDesc$1(1, {}));
+      it[HIDDEN][key] = true;
+    } else {
+      if(has$5(it, HIDDEN) && it[HIDDEN][key])it[HIDDEN][key] = false;
+      D = _create(D, {enumerable: createDesc$1(0, false)});
+    } return setSymbolDesc(it, key, D);
+  } return dP$3(it, key, D);
+};
+var $defineProperties = function defineProperties(it, P){
+  anObject$3(it);
+  var keys = enumKeys(P = toIObject$3(P))
+    , i    = 0
+    , l = keys.length
+    , key;
+  while(l > i)$defineProperty(it, key = keys[i++], P[key]);
+  return it;
+};
+var $create = function create(it, P){
+  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
+};
+var $propertyIsEnumerable = function propertyIsEnumerable(key){
+  var E = isEnum.call(this, key = toPrimitive$1(key, true));
+  if(this === ObjectProto$1 && has$5(AllSymbols, key) && !has$5(OPSymbols, key))return false;
+  return E || !has$5(this, key) || !has$5(AllSymbols, key) || has$5(this, HIDDEN) && this[HIDDEN][key] ? E : true;
+};
+var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key){
+  it  = toIObject$3(it);
+  key = toPrimitive$1(key, true);
+  if(it === ObjectProto$1 && has$5(AllSymbols, key) && !has$5(OPSymbols, key))return;
+  var D = gOPD(it, key);
+  if(D && has$5(AllSymbols, key) && !(has$5(it, HIDDEN) && it[HIDDEN][key]))D.enumerable = true;
+  return D;
+};
+var $getOwnPropertyNames = function getOwnPropertyNames(it){
+  var names  = gOPN(toIObject$3(it))
+    , result = []
+    , i      = 0
+    , key;
+  while(names.length > i){
+    if(!has$5(AllSymbols, key = names[i++]) && key != HIDDEN && key != META)result.push(key);
+  } return result;
+};
+var $getOwnPropertySymbols = function getOwnPropertySymbols(it){
+  var IS_OP  = it === ObjectProto$1
+    , names  = gOPN(IS_OP ? OPSymbols : toIObject$3(it))
+    , result = []
+    , i      = 0
+    , key;
+  while(names.length > i){
+    if(has$5(AllSymbols, key = names[i++]) && (IS_OP ? has$5(ObjectProto$1, key) : true))result.push(AllSymbols[key]);
+  } return result;
+};
+
+// 19.4.1.1 Symbol([description])
+if(!USE_NATIVE){
+  $Symbol = function Symbol(){
+    if(this instanceof $Symbol)throw TypeError('Symbol is not a constructor!');
+    var tag = uid$1(arguments.length > 0 ? arguments[0] : undefined);
+    var $set = function(value){
+      if(this === ObjectProto$1)$set.call(OPSymbols, value);
+      if(has$5(this, HIDDEN) && has$5(this[HIDDEN], tag))this[HIDDEN][tag] = false;
+      setSymbolDesc(this, tag, createDesc$1(1, value));
+    };
+    if(DESCRIPTORS && setter)setSymbolDesc(ObjectProto$1, tag, {configurable: true, set: $set});
+    return wrap(tag);
+  };
+  redefine$1($Symbol[PROTOTYPE$2], 'toString', function toString(){
+    return this._k;
+  });
+
+  $GOPD.f = $getOwnPropertyDescriptor;
+  $DP.f   = $defineProperty;
+  _objectGopn.f = gOPNExt.f = $getOwnPropertyNames;
+  _objectPie.f  = $propertyIsEnumerable;
+  _objectGops.f = $getOwnPropertySymbols;
+
+  if(DESCRIPTORS && !_library){
+    redefine$1(ObjectProto$1, 'propertyIsEnumerable', $propertyIsEnumerable, true);
+  }
+
+  wksExt.f = function(name){
+    return wrap(wks(name));
+  };
+}
+
+$export$2($export$2.G + $export$2.W + $export$2.F * !USE_NATIVE, {Symbol: $Symbol});
+
+for(var symbols = (
+  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
+  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
+).split(','), i$1 = 0; symbols.length > i$1; )wks(symbols[i$1++]);
+
+for(var symbols = $keys$1(wks.store), i$1 = 0; symbols.length > i$1; )wksDefine(symbols[i$1++]);
+
+$export$2($export$2.S + $export$2.F * !USE_NATIVE, 'Symbol', {
+  // 19.4.2.1 Symbol.for(key)
+  'for': function(key){
+    return has$5(SymbolRegistry, key += '')
+      ? SymbolRegistry[key]
+      : SymbolRegistry[key] = $Symbol(key);
+  },
+  // 19.4.2.5 Symbol.keyFor(sym)
+  keyFor: function keyFor(key){
+    if(isSymbol(key))return keyOf(SymbolRegistry, key);
+    throw TypeError(key + ' is not a symbol!');
+  },
+  useSetter: function(){ setter = true; },
+  useSimple: function(){ setter = false; }
+});
+
+$export$2($export$2.S + $export$2.F * !USE_NATIVE, 'Object', {
+  // 19.1.2.2 Object.create(O [, Properties])
+  create: $create,
+  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
+  defineProperty: $defineProperty,
+  // 19.1.2.3 Object.defineProperties(O, Properties)
+  defineProperties: $defineProperties,
+  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+  // 19.1.2.7 Object.getOwnPropertyNames(O)
+  getOwnPropertyNames: $getOwnPropertyNames,
+  // 19.1.2.8 Object.getOwnPropertySymbols(O)
+  getOwnPropertySymbols: $getOwnPropertySymbols
+});
+
+// 24.3.2 JSON.stringify(value [, replacer [, space]])
+$JSON && $export$2($export$2.S + $export$2.F * (!USE_NATIVE || $fails(function(){
+  var S = $Symbol();
+  // MS Edge converts symbol values to JSON as {}
+  // WebKit converts symbol values to JSON as null
+  // V8 throws on boxed symbols
+  return _stringify([S]) != '[null]' || _stringify({a: S}) != '{}' || _stringify(Object(S)) != '{}';
+})), 'JSON', {
+  stringify: function stringify(it){
+    if(it === undefined || isSymbol(it))return; // IE8 returns string on undefined
+    var args = [it]
+      , i    = 1
+      , replacer, $replacer;
+    while(arguments.length > i)args.push(arguments[i++]);
+    replacer = args[1];
+    if(typeof replacer == 'function')$replacer = replacer;
+    if($replacer || !isArray$1(replacer))replacer = function(key, value){
+      if($replacer)value = $replacer.call(this, key, value);
+      if(!isSymbol(value))return value;
+    };
+    args[1] = replacer;
+    return _stringify.apply($JSON, args);
+  }
+});
+
+// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
+$Symbol[PROTOTYPE$2][TO_PRIMITIVE] || _hide($Symbol[PROTOTYPE$2], TO_PRIMITIVE, $Symbol[PROTOTYPE$2].valueOf);
+// 19.4.3.5 Symbol.prototype[@@toStringTag]
+setToStringTag$2($Symbol, 'Symbol');
+// 20.2.1.9 Math[@@toStringTag]
+setToStringTag$2(Math, 'Math', true);
+// 24.3.3 JSON[@@toStringTag]
+setToStringTag$2(global$4.JSON, 'JSON', true);
+
+_wksDefine('asyncIterator');
+
+_wksDefine('observable');
+
+var index = _core.Symbol;
+
+var symbol = createCommonjsModule(function (module) {
+module.exports = { "default": index, __esModule: true };
+});
+
+var _typeof_1 = createCommonjsModule(function (module, exports) {
+"use strict";
+
+exports.__esModule = true;
+
+var _iterator = iterator;
+
+var _iterator2 = _interopRequireDefault(_iterator);
+
+var _symbol = symbol;
+
+var _symbol2 = _interopRequireDefault(_symbol);
+
+var _typeof = typeof _symbol2.default === "function" && typeof _iterator2.default === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj; };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.default) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof(obj);
+} : function (obj) {
+  return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
+};
+});
+
+var _typeof = unwrapExports(_typeof_1);
+
+var core$2  = _core;
+var $JSON$1 = core$2.JSON || (core$2.JSON = {stringify: JSON.stringify});
+var stringify$2 = function stringify$2(it){ // eslint-disable-line no-unused-vars
+  return $JSON$1.stringify.apply($JSON$1, arguments);
+};
+
+var stringify$1 = createCommonjsModule(function (module) {
+module.exports = { "default": stringify$2, __esModule: true };
+});
+
+var _JSON$stringify = unwrapExports(stringify$1);
+
+var cof$2 = _cof;
 var TAG$1 = _wks('toStringTag');
-var ARG = cof$1(function(){ return arguments; }()) == 'Arguments';
+var ARG = cof$2(function(){ return arguments; }()) == 'Arguments';
 
 // fallback for IE11 Script Access Denied error
 var tryGet = function(it, key){
@@ -613,9 +1059,9 @@ var _classof = function(it){
     // @@toStringTag case
     : typeof (T = tryGet(O = Object(it), TAG$1)) == 'string' ? T
     // builtinTag case
-    : ARG ? cof$1(O)
+    : ARG ? cof$2(O)
     // ES3 arguments fallback
-    : (B = cof$1(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+    : (B = cof$2(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
 };
 
 var _anInstance = function(it, Constructor, name, forbiddenField){
@@ -624,14 +1070,14 @@ var _anInstance = function(it, Constructor, name, forbiddenField){
   } return it;
 };
 
-var anObject$3 = _anObject;
+var anObject$4 = _anObject;
 var _iterCall = function(iterator, fn, value, entries){
   try {
-    return entries ? fn(anObject$3(value)[0], value[1]) : fn(value);
+    return entries ? fn(anObject$4(value)[0], value[1]) : fn(value);
   // 7.4.6 IteratorClose(iterator, completion)
   } catch(e){
     var ret = iterator['return'];
-    if(ret !== undefined)anObject$3(ret.call(iterator));
+    if(ret !== undefined)anObject$4(ret.call(iterator));
     throw e;
   }
 };
@@ -681,12 +1127,12 @@ exports.BREAK  = BREAK;
 exports.RETURN = RETURN;
 });
 
-var anObject$4  = _anObject;
+var anObject$5  = _anObject;
 var aFunction$2 = _aFunction;
 var SPECIES   = _wks('species');
 var _speciesConstructor = function(O, D){
-  var C = anObject$4(O).constructor, S;
-  return C === undefined || (S = anObject$4(C)[SPECIES]) == undefined ? D : aFunction$2(S);
+  var C = anObject$5(O).constructor, S;
+  return C === undefined || (S = anObject$5(C)[SPECIES]) == undefined ? D : aFunction$2(S);
 };
 
 // fast apply, http://jsperf.lnkit.com/fast-apply/5
@@ -710,11 +1156,11 @@ var ctx$2                = _ctx;
 var invoke             = _invoke;
 var html               = _html;
 var cel                = _domCreate;
-var global$5             = _global;
-var process$1            = global$5.process;
-var setTask            = global$5.setImmediate;
-var clearTask          = global$5.clearImmediate;
-var MessageChannel     = global$5.MessageChannel;
+var global$7             = _global;
+var process$1            = global$7.process;
+var setTask            = global$7.setImmediate;
+var clearTask          = global$7.clearImmediate;
+var MessageChannel     = global$7.MessageChannel;
 var counter            = 0;
 var queue              = {};
 var ONREADYSTATECHANGE = 'onreadystatechange';
@@ -759,11 +1205,11 @@ if(!setTask || !clearTask){
     defer = ctx$2(port.postMessage, port, 1);
   // Browsers with postMessage, skip WebWorkers
   // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
-  } else if(global$5.addEventListener && typeof postMessage == 'function' && !global$5.importScripts){
+  } else if(global$7.addEventListener && typeof postMessage == 'function' && !global$7.importScripts){
     defer = function(id){
-      global$5.postMessage(id + '', '*');
+      global$7.postMessage(id + '', '*');
     };
-    global$5.addEventListener('message', listener, false);
+    global$7.addEventListener('message', listener, false);
   // IE8-
   } else if(ONREADYSTATECHANGE in cel('script')){
     defer = function(id){
@@ -784,11 +1230,11 @@ var _task = {
   clear: clearTask
 };
 
-var global$6    = _global;
+var global$8    = _global;
 var macrotask = _task.set;
-var Observer  = global$6.MutationObserver || global$6.WebKitMutationObserver;
-var process$2   = global$6.process;
-var Promise$1   = global$6.Promise;
+var Observer  = global$8.MutationObserver || global$8.WebKitMutationObserver;
+var process$2   = global$8.process;
+var Promise$1   = global$8.Promise;
 var isNode$1    = _cof(process$2) == 'process';
 
 var _microtask = function(){
@@ -839,7 +1285,7 @@ var _microtask = function(){
   } else {
     notify = function(){
       // strange IE + webpack dev server bug - use .call(global)
-      macrotask.call(global$6, flush);
+      macrotask.call(global$8, flush);
     };
   }
 
@@ -861,15 +1307,15 @@ var _redefineAll = function(target, src, safe){
   } return target;
 };
 
-var global$7      = _global;
-var core$2        = _core;
-var dP$3          = _objectDp;
-var DESCRIPTORS = _descriptors;
+var global$9      = _global;
+var core$3        = _core;
+var dP$4          = _objectDp;
+var DESCRIPTORS$1 = _descriptors;
 var SPECIES$1     = _wks('species');
 
 var _setSpecies = function(KEY){
-  var C = typeof core$2[KEY] == 'function' ? core$2[KEY] : global$7[KEY];
-  if(DESCRIPTORS && C && !C[SPECIES$1])dP$3.f(C, SPECIES$1, {
+  var C = typeof core$3[KEY] == 'function' ? core$3[KEY] : global$9[KEY];
+  if(DESCRIPTORS$1 && C && !C[SPECIES$1])dP$4.f(C, SPECIES$1, {
     configurable: true,
     get: function(){ return this; }
   });
@@ -897,11 +1343,11 @@ var _iterDetect = function(exec, skipClosing){
   return safe;
 };
 
-var LIBRARY$1            = _library;
-var global$4             = _global;
+var LIBRARY$2            = _library;
+var global$6             = _global;
 var ctx$1                = _ctx;
 var classof            = _classof;
-var $export$2            = _export;
+var $export$3            = _export;
 var isObject$3           = _isObject;
 var aFunction$1          = _aFunction;
 var anInstance         = _anInstance;
@@ -910,17 +1356,17 @@ var speciesConstructor = _speciesConstructor;
 var task               = _task.set;
 var microtask          = _microtask();
 var PROMISE            = 'Promise';
-var TypeError$1          = global$4.TypeError;
-var process            = global$4.process;
-var $Promise           = global$4[PROMISE];
-var process            = global$4.process;
+var TypeError$1          = global$6.TypeError;
+var process            = global$6.process;
+var $Promise           = global$6[PROMISE];
+var process            = global$6.process;
 var isNode             = classof(process) == 'process';
 var empty              = function(){ /* empty */ };
 var Internal;
 var GenericPromiseCapability;
 var Wrapper;
 
-var USE_NATIVE = !!function(){
+var USE_NATIVE$1 = !!function(){
   try {
     // correct subclassing with @@species support
     var promise     = $Promise.resolve(1)
@@ -1004,16 +1450,16 @@ var notify = function(promise, isReject){
   });
 };
 var onUnhandled = function(promise){
-  task.call(global$4, function(){
+  task.call(global$6, function(){
     var value = promise._v
       , abrupt, handler, console;
     if(isUnhandled(promise)){
       abrupt = perform(function(){
         if(isNode){
           process.emit('unhandledRejection', value, promise);
-        } else if(handler = global$4.onunhandledrejection){
+        } else if(handler = global$6.onunhandledrejection){
           handler({promise: promise, reason: value});
-        } else if((console = global$4.console) && console.error){
+        } else if((console = global$6.console) && console.error){
           console.error('Unhandled promise rejection', value);
         }
       });
@@ -1034,11 +1480,11 @@ var isUnhandled = function(promise){
   } return true;
 };
 var onHandleUnhandled = function(promise){
-  task.call(global$4, function(){
+  task.call(global$6, function(){
     var handler;
     if(isNode){
       process.emit('rejectionHandled', promise);
-    } else if(handler = global$4.onrejectionhandled){
+    } else if(handler = global$6.onrejectionhandled){
       handler({promise: promise, reason: promise._v});
     }
   });
@@ -1081,7 +1527,7 @@ var $resolve = function(value){
 };
 
 // constructor polyfill
-if(!USE_NATIVE){
+if(!USE_NATIVE$1){
   // 25.4.3.1 Promise(executor)
   $Promise = function Promise(executor){
     anInstance(this, $Promise, PROMISE, '_h');
@@ -1127,13 +1573,13 @@ if(!USE_NATIVE){
   };
 }
 
-$export$2($export$2.G + $export$2.W + $export$2.F * !USE_NATIVE, {Promise: $Promise});
+$export$3($export$3.G + $export$3.W + $export$3.F * !USE_NATIVE$1, {Promise: $Promise});
 _setToStringTag($Promise, PROMISE);
 _setSpecies(PROMISE);
 Wrapper = _core[PROMISE];
 
 // statics
-$export$2($export$2.S + $export$2.F * !USE_NATIVE, PROMISE, {
+$export$3($export$3.S + $export$3.F * !USE_NATIVE$1, PROMISE, {
   // 25.4.4.5 Promise.reject(r)
   reject: function reject(r){
     var capability = newPromiseCapability(this)
@@ -1142,7 +1588,7 @@ $export$2($export$2.S + $export$2.F * !USE_NATIVE, PROMISE, {
     return capability.promise;
   }
 });
-$export$2($export$2.S + $export$2.F * (LIBRARY$1 || !USE_NATIVE), PROMISE, {
+$export$3($export$3.S + $export$3.F * (LIBRARY$2 || !USE_NATIVE$1), PROMISE, {
   // 25.4.4.6 Promise.resolve(x)
   resolve: function resolve(x){
     // instanceof instead of internal slot check because we should fix it without replacement native Promise core
@@ -1153,7 +1599,7 @@ $export$2($export$2.S + $export$2.F * (LIBRARY$1 || !USE_NATIVE), PROMISE, {
     return capability.promise;
   }
 });
-$export$2($export$2.S + $export$2.F * !(USE_NATIVE && _iterDetect(function(iter){
+$export$3($export$3.S + $export$3.F * !(USE_NATIVE$1 && _iterDetect(function(iter){
   $Promise.all(iter)['catch'](empty);
 })), PROMISE, {
   // 25.4.4.1 Promise.all(iterable)
@@ -1206,14 +1652,14 @@ module.exports = { "default": promise$1, __esModule: true };
 
 var _Promise = unwrapExports(promise);
 
-var $export$3 = _export;
-var core$3    = _core;
+var $export$4 = _export;
+var core$4    = _core;
 var fails   = _fails;
 var _objectSap = function(KEY, exec){
-  var fn  = (core$3.Object || {})[KEY] || Object[KEY]
+  var fn  = (core$4.Object || {})[KEY] || Object[KEY]
     , exp = {};
   exp[KEY] = exec(fn);
-  $export$3($export$3.S + $export$3.F * fails(function(){ fn(1); }), 'Object', exp);
+  $export$4($export$4.S + $export$4.F * fails(function(){ fn(1); }), 'Object', exp);
 };
 
 var toObject$1        = _toObject;
@@ -1246,450 +1692,6 @@ exports.default = function (instance, Constructor) {
 });
 
 var _classCallCheck = unwrapExports(classCallCheck);
-
-var f$1 = _wks;
-
-var _wksExt = {
-	f: f$1
-};
-
-var iterator$2 = _wksExt.f('iterator');
-
-var iterator = createCommonjsModule(function (module) {
-module.exports = { "default": iterator$2, __esModule: true };
-});
-
-var _meta = createCommonjsModule(function (module) {
-var META     = _uid('meta')
-  , isObject = _isObject
-  , has      = _has
-  , setDesc  = _objectDp.f
-  , id       = 0;
-var isExtensible = Object.isExtensible || function(){
-  return true;
-};
-var FREEZE = !_fails(function(){
-  return isExtensible(Object.preventExtensions({}));
-});
-var setMeta = function(it){
-  setDesc(it, META, {value: {
-    i: 'O' + ++id, // object ID
-    w: {}          // weak collections IDs
-  }});
-};
-var fastKey = function(it, create){
-  // return primitive with prefix
-  if(!isObject(it))return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if(!has(it, META)){
-    // can't set metadata to uncaught frozen object
-    if(!isExtensible(it))return 'F';
-    // not necessary to add metadata
-    if(!create)return 'E';
-    // add missing metadata
-    setMeta(it);
-  // return object ID
-  } return it[META].i;
-};
-var getWeak = function(it, create){
-  if(!has(it, META)){
-    // can't set metadata to uncaught frozen object
-    if(!isExtensible(it))return true;
-    // not necessary to add metadata
-    if(!create)return false;
-    // add missing metadata
-    setMeta(it);
-  // return hash weak collections IDs
-  } return it[META].w;
-};
-// add metadata on freeze-family methods calling
-var onFreeze = function(it){
-  if(FREEZE && meta.NEED && isExtensible(it) && !has(it, META))setMeta(it);
-  return it;
-};
-var meta = module.exports = {
-  KEY:      META,
-  NEED:     false,
-  fastKey:  fastKey,
-  getWeak:  getWeak,
-  onFreeze: onFreeze
-};
-});
-
-var global$9         = _global;
-var core$4           = _core;
-var LIBRARY$2        = _library;
-var wksExt$1         = _wksExt;
-var defineProperty$1 = _objectDp.f;
-var _wksDefine = function(name){
-  var $Symbol = core$4.Symbol || (core$4.Symbol = LIBRARY$2 ? {} : global$9.Symbol || {});
-  if(name.charAt(0) != '_' && !(name in $Symbol))defineProperty$1($Symbol, name, {value: wksExt$1.f(name)});
-};
-
-var getKeys$1   = _objectKeys;
-var toIObject$4 = _toIobject;
-var _keyof = function(object, el){
-  var O      = toIObject$4(object)
-    , keys   = getKeys$1(O)
-    , length = keys.length
-    , index  = 0
-    , key;
-  while(length > index)if(O[key = keys[index++]] === el)return key;
-};
-
-var f$2 = Object.getOwnPropertySymbols;
-
-var _objectGops = {
-	f: f$2
-};
-
-var f$3 = {}.propertyIsEnumerable;
-
-var _objectPie = {
-	f: f$3
-};
-
-var getKeys$2 = _objectKeys;
-var gOPS    = _objectGops;
-var pIE     = _objectPie;
-var _enumKeys = function(it){
-  var result     = getKeys$2(it)
-    , getSymbols = gOPS.f;
-  if(getSymbols){
-    var symbols = getSymbols(it)
-      , isEnum  = pIE.f
-      , i       = 0
-      , key;
-    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))result.push(key);
-  } return result;
-};
-
-var cof$2 = _cof;
-var _isArray = Array.isArray || function isArray(arg){
-  return cof$2(arg) == 'Array';
-};
-
-var $keys$2      = _objectKeysInternal;
-var hiddenKeys = _enumBugKeys.concat('length', 'prototype');
-
-var f$5 = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
-  return $keys$2(O, hiddenKeys);
-};
-
-var _objectGopn = {
-	f: f$5
-};
-
-var toIObject$5 = _toIobject;
-var gOPN$1      = _objectGopn.f;
-var toString$2  = {}.toString;
-
-var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
-  ? Object.getOwnPropertyNames(window) : [];
-
-var getWindowNames = function(it){
-  try {
-    return gOPN$1(it);
-  } catch(e){
-    return windowNames.slice();
-  }
-};
-
-var f$4 = function getOwnPropertyNames(it){
-  return windowNames && toString$2.call(it) == '[object Window]' ? getWindowNames(it) : gOPN$1(toIObject$5(it));
-};
-
-var _objectGopnExt = {
-	f: f$4
-};
-
-var pIE$1            = _objectPie;
-var createDesc$2     = _propertyDesc;
-var toIObject$6      = _toIobject;
-var toPrimitive$2    = _toPrimitive;
-var has$6            = _has;
-var IE8_DOM_DEFINE$1 = _ie8DomDefine;
-var gOPD$1           = Object.getOwnPropertyDescriptor;
-
-var f$6 = _descriptors ? gOPD$1 : function getOwnPropertyDescriptor(O, P){
-  O = toIObject$6(O);
-  P = toPrimitive$2(P, true);
-  if(IE8_DOM_DEFINE$1)try {
-    return gOPD$1(O, P);
-  } catch(e){ /* empty */ }
-  if(has$6(O, P))return createDesc$2(!pIE$1.f.call(O, P), O[P]);
-};
-
-var _objectGopd = {
-	f: f$6
-};
-
-var global$8         = _global;
-var has$5            = _has;
-var DESCRIPTORS$1    = _descriptors;
-var $export$4        = _export;
-var redefine$1       = _redefine;
-var META           = _meta.KEY;
-var $fails         = _fails;
-var shared$1         = _shared;
-var setToStringTag$2 = _setToStringTag;
-var uid$1            = _uid;
-var wks            = _wks;
-var wksExt         = _wksExt;
-var wksDefine      = _wksDefine;
-var keyOf          = _keyof;
-var enumKeys       = _enumKeys;
-var isArray$1        = _isArray;
-var anObject$5       = _anObject;
-var toIObject$3      = _toIobject;
-var toPrimitive$1    = _toPrimitive;
-var createDesc$1     = _propertyDesc;
-var _create        = _objectCreate;
-var gOPNExt        = _objectGopnExt;
-var $GOPD          = _objectGopd;
-var $DP            = _objectDp;
-var $keys$1          = _objectKeys;
-var gOPD           = $GOPD.f;
-var dP$4             = $DP.f;
-var gOPN           = gOPNExt.f;
-var $Symbol        = global$8.Symbol;
-var $JSON$1          = global$8.JSON;
-var _stringify     = $JSON$1 && $JSON$1.stringify;
-var PROTOTYPE$2      = 'prototype';
-var HIDDEN         = wks('_hidden');
-var TO_PRIMITIVE   = wks('toPrimitive');
-var isEnum         = {}.propertyIsEnumerable;
-var SymbolRegistry = shared$1('symbol-registry');
-var AllSymbols     = shared$1('symbols');
-var OPSymbols      = shared$1('op-symbols');
-var ObjectProto$1    = Object[PROTOTYPE$2];
-var USE_NATIVE$1     = typeof $Symbol == 'function';
-var QObject        = global$8.QObject;
-// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
-var setter = !QObject || !QObject[PROTOTYPE$2] || !QObject[PROTOTYPE$2].findChild;
-
-// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
-var setSymbolDesc = DESCRIPTORS$1 && $fails(function(){
-  return _create(dP$4({}, 'a', {
-    get: function(){ return dP$4(this, 'a', {value: 7}).a; }
-  })).a != 7;
-}) ? function(it, key, D){
-  var protoDesc = gOPD(ObjectProto$1, key);
-  if(protoDesc)delete ObjectProto$1[key];
-  dP$4(it, key, D);
-  if(protoDesc && it !== ObjectProto$1)dP$4(ObjectProto$1, key, protoDesc);
-} : dP$4;
-
-var wrap = function(tag){
-  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE$2]);
-  sym._k = tag;
-  return sym;
-};
-
-var isSymbol = USE_NATIVE$1 && typeof $Symbol.iterator == 'symbol' ? function(it){
-  return typeof it == 'symbol';
-} : function(it){
-  return it instanceof $Symbol;
-};
-
-var $defineProperty = function defineProperty(it, key, D){
-  if(it === ObjectProto$1)$defineProperty(OPSymbols, key, D);
-  anObject$5(it);
-  key = toPrimitive$1(key, true);
-  anObject$5(D);
-  if(has$5(AllSymbols, key)){
-    if(!D.enumerable){
-      if(!has$5(it, HIDDEN))dP$4(it, HIDDEN, createDesc$1(1, {}));
-      it[HIDDEN][key] = true;
-    } else {
-      if(has$5(it, HIDDEN) && it[HIDDEN][key])it[HIDDEN][key] = false;
-      D = _create(D, {enumerable: createDesc$1(0, false)});
-    } return setSymbolDesc(it, key, D);
-  } return dP$4(it, key, D);
-};
-var $defineProperties = function defineProperties(it, P){
-  anObject$5(it);
-  var keys = enumKeys(P = toIObject$3(P))
-    , i    = 0
-    , l = keys.length
-    , key;
-  while(l > i)$defineProperty(it, key = keys[i++], P[key]);
-  return it;
-};
-var $create = function create(it, P){
-  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
-};
-var $propertyIsEnumerable = function propertyIsEnumerable(key){
-  var E = isEnum.call(this, key = toPrimitive$1(key, true));
-  if(this === ObjectProto$1 && has$5(AllSymbols, key) && !has$5(OPSymbols, key))return false;
-  return E || !has$5(this, key) || !has$5(AllSymbols, key) || has$5(this, HIDDEN) && this[HIDDEN][key] ? E : true;
-};
-var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key){
-  it  = toIObject$3(it);
-  key = toPrimitive$1(key, true);
-  if(it === ObjectProto$1 && has$5(AllSymbols, key) && !has$5(OPSymbols, key))return;
-  var D = gOPD(it, key);
-  if(D && has$5(AllSymbols, key) && !(has$5(it, HIDDEN) && it[HIDDEN][key]))D.enumerable = true;
-  return D;
-};
-var $getOwnPropertyNames = function getOwnPropertyNames(it){
-  var names  = gOPN(toIObject$3(it))
-    , result = []
-    , i      = 0
-    , key;
-  while(names.length > i){
-    if(!has$5(AllSymbols, key = names[i++]) && key != HIDDEN && key != META)result.push(key);
-  } return result;
-};
-var $getOwnPropertySymbols = function getOwnPropertySymbols(it){
-  var IS_OP  = it === ObjectProto$1
-    , names  = gOPN(IS_OP ? OPSymbols : toIObject$3(it))
-    , result = []
-    , i      = 0
-    , key;
-  while(names.length > i){
-    if(has$5(AllSymbols, key = names[i++]) && (IS_OP ? has$5(ObjectProto$1, key) : true))result.push(AllSymbols[key]);
-  } return result;
-};
-
-// 19.4.1.1 Symbol([description])
-if(!USE_NATIVE$1){
-  $Symbol = function Symbol(){
-    if(this instanceof $Symbol)throw TypeError('Symbol is not a constructor!');
-    var tag = uid$1(arguments.length > 0 ? arguments[0] : undefined);
-    var $set = function(value){
-      if(this === ObjectProto$1)$set.call(OPSymbols, value);
-      if(has$5(this, HIDDEN) && has$5(this[HIDDEN], tag))this[HIDDEN][tag] = false;
-      setSymbolDesc(this, tag, createDesc$1(1, value));
-    };
-    if(DESCRIPTORS$1 && setter)setSymbolDesc(ObjectProto$1, tag, {configurable: true, set: $set});
-    return wrap(tag);
-  };
-  redefine$1($Symbol[PROTOTYPE$2], 'toString', function toString(){
-    return this._k;
-  });
-
-  $GOPD.f = $getOwnPropertyDescriptor;
-  $DP.f   = $defineProperty;
-  _objectGopn.f = gOPNExt.f = $getOwnPropertyNames;
-  _objectPie.f  = $propertyIsEnumerable;
-  _objectGops.f = $getOwnPropertySymbols;
-
-  if(DESCRIPTORS$1 && !_library){
-    redefine$1(ObjectProto$1, 'propertyIsEnumerable', $propertyIsEnumerable, true);
-  }
-
-  wksExt.f = function(name){
-    return wrap(wks(name));
-  };
-}
-
-$export$4($export$4.G + $export$4.W + $export$4.F * !USE_NATIVE$1, {Symbol: $Symbol});
-
-for(var symbols = (
-  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
-  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
-).split(','), i$1 = 0; symbols.length > i$1; )wks(symbols[i$1++]);
-
-for(var symbols = $keys$1(wks.store), i$1 = 0; symbols.length > i$1; )wksDefine(symbols[i$1++]);
-
-$export$4($export$4.S + $export$4.F * !USE_NATIVE$1, 'Symbol', {
-  // 19.4.2.1 Symbol.for(key)
-  'for': function(key){
-    return has$5(SymbolRegistry, key += '')
-      ? SymbolRegistry[key]
-      : SymbolRegistry[key] = $Symbol(key);
-  },
-  // 19.4.2.5 Symbol.keyFor(sym)
-  keyFor: function keyFor(key){
-    if(isSymbol(key))return keyOf(SymbolRegistry, key);
-    throw TypeError(key + ' is not a symbol!');
-  },
-  useSetter: function(){ setter = true; },
-  useSimple: function(){ setter = false; }
-});
-
-$export$4($export$4.S + $export$4.F * !USE_NATIVE$1, 'Object', {
-  // 19.1.2.2 Object.create(O [, Properties])
-  create: $create,
-  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
-  defineProperty: $defineProperty,
-  // 19.1.2.3 Object.defineProperties(O, Properties)
-  defineProperties: $defineProperties,
-  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
-  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
-  // 19.1.2.7 Object.getOwnPropertyNames(O)
-  getOwnPropertyNames: $getOwnPropertyNames,
-  // 19.1.2.8 Object.getOwnPropertySymbols(O)
-  getOwnPropertySymbols: $getOwnPropertySymbols
-});
-
-// 24.3.2 JSON.stringify(value [, replacer [, space]])
-$JSON$1 && $export$4($export$4.S + $export$4.F * (!USE_NATIVE$1 || $fails(function(){
-  var S = $Symbol();
-  // MS Edge converts symbol values to JSON as {}
-  // WebKit converts symbol values to JSON as null
-  // V8 throws on boxed symbols
-  return _stringify([S]) != '[null]' || _stringify({a: S}) != '{}' || _stringify(Object(S)) != '{}';
-})), 'JSON', {
-  stringify: function stringify(it){
-    if(it === undefined || isSymbol(it))return; // IE8 returns string on undefined
-    var args = [it]
-      , i    = 1
-      , replacer, $replacer;
-    while(arguments.length > i)args.push(arguments[i++]);
-    replacer = args[1];
-    if(typeof replacer == 'function')$replacer = replacer;
-    if($replacer || !isArray$1(replacer))replacer = function(key, value){
-      if($replacer)value = $replacer.call(this, key, value);
-      if(!isSymbol(value))return value;
-    };
-    args[1] = replacer;
-    return _stringify.apply($JSON$1, args);
-  }
-});
-
-// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-$Symbol[PROTOTYPE$2][TO_PRIMITIVE] || _hide($Symbol[PROTOTYPE$2], TO_PRIMITIVE, $Symbol[PROTOTYPE$2].valueOf);
-// 19.4.3.5 Symbol.prototype[@@toStringTag]
-setToStringTag$2($Symbol, 'Symbol');
-// 20.2.1.9 Math[@@toStringTag]
-setToStringTag$2(Math, 'Math', true);
-// 24.3.3 JSON[@@toStringTag]
-setToStringTag$2(global$8.JSON, 'JSON', true);
-
-_wksDefine('asyncIterator');
-
-_wksDefine('observable');
-
-var index = _core.Symbol;
-
-var symbol = createCommonjsModule(function (module) {
-module.exports = { "default": index, __esModule: true };
-});
-
-var _typeof_1 = createCommonjsModule(function (module, exports) {
-"use strict";
-
-exports.__esModule = true;
-
-var _iterator = iterator;
-
-var _iterator2 = _interopRequireDefault(_iterator);
-
-var _symbol = symbol;
-
-var _symbol2 = _interopRequireDefault(_symbol);
-
-var _typeof = typeof _symbol2.default === "function" && typeof _iterator2.default === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj; };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.default) === "symbol" ? function (obj) {
-  return typeof obj === "undefined" ? "undefined" : _typeof(obj);
-} : function (obj) {
-  return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
-};
-});
 
 var possibleConstructorReturn = createCommonjsModule(function (module, exports) {
 "use strict";
@@ -2193,7 +2195,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 function _defineProperty$1(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-
+function toList(xs) {
+    return foldBack(function (x, acc) {
+        return new List$1(x, acc);
+    }, xs, new List$1());
+}
 
 
 
@@ -2238,12 +2244,22 @@ function fold(f, acc, xs) {
         return acc;
     }
 }
+function foldBack(f, xs, acc) {
+    var arr = Array.isArray(xs) || ArrayBuffer.isView(xs) ? xs : Array.from(xs);
+    for (var i = arr.length - 1; i >= 0; i--) {
+        acc = f(arr[i], acc, i);
+    }
+    return acc;
+}
 
 
 
 
-
-
+function tryHead(xs) {
+    var iter = xs[Symbol.iterator]();
+    var cur = iter.next();
+    return cur.done ? null : cur.value;
+}
 
 
 
@@ -2296,9 +2312,18 @@ function map2(f, xs, ys) {
 
 
 
+function rangeStep(first, step, last) {
+    if (step === 0) throw new Error("Step cannot be 0");
+    return delay(function () {
+        return unfold(function (x) {
+            return step > 0 && x <= last || step < 0 && x >= last ? [x, x + step] : null;
+        }, first);
+    });
+}
 
-
-
+function range(first, last) {
+    return rangeStep(first, 1, last);
+}
 
 
 
@@ -2964,13 +2989,17 @@ function year(d) {
 
 
 
+function addSeconds(d, v) {
+    return parse(d.getTime() + v * 1000, d.kind);
+}
 
 
 
 
 
-
-
+function toLongDateString(d) {
+    return d.toDateString();
+}
 function toShortDateString(d) {
     return d.toLocaleDateString();
 }
@@ -3343,11 +3372,16 @@ var pow = function pow(tupledArg) {
 
 
 
+function linear(t, b, c, d) {
+  return c * t / d + b;
+}
 
 
 
-
-
+function inCubic(t, b, c, d) {
+  var t_1 = t / d;
+  return c * pow([t_1, 3]) + b;
+}
 function outCubic(t, b, c, d) {
   var t_1 = t / d - 1;
   return c * (pow([t_1, 3]) + 1) + b;
@@ -3465,6 +3499,7 @@ var State = function () {
         cases: {
           Loading: [],
           MainTitle: [],
+          NextDate: [],
           Nothing: [],
           Play: []
         }
@@ -3557,6 +3592,36 @@ var Launcher = function () {
   return Launcher;
 }();
 declare(Launcher);
+var Trail = function () {
+  function Trail(sprite, dec) {
+    _classCallCheck(this, Trail);
+
+    this.sprite = sprite;
+    this.dec = dec;
+  }
+
+  _createClass(Trail, [{
+    key: FSymbol.reflection,
+    value: function value() {
+      return {
+        type: "Index.Trail",
+        interfaces: ["FSharpRecord", "System.IEquatable"],
+        properties: {
+          sprite: PIXI.Sprite,
+          dec: "number"
+        }
+      };
+    }
+  }, {
+    key: "Equals",
+    value: function Equals(other) {
+      return equalsRecords(this, other);
+    }
+  }]);
+
+  return Trail;
+}();
+declare(Trail);
 var Behaviors = function (__exports) {
   var distanceBetween2Points = function distanceBetween2Points(p1, p2) {
     var tx = p2.x - p1.x;
@@ -3606,13 +3671,14 @@ var Behaviors = function (__exports) {
     var distance = 0;
     var a = 0;
     var where$$1 = Math.random() > 0.5 ? 1 : -1;
-    var curve = Math.random() * 2 / 1000 * where$$1;
+    var curve = Math.random() * 5 / 500 * where$$1;
     return function (s, dt) {
       var patternInput = [p.x - s.position.x, p.y - s.position.y];
       a = Math.atan2(patternInput[1], patternInput[0]) + curve;
       return _Promise.resolve(ms < 0 ? function () {
         var patternInput_1 = [p.x - s.position.x, p.y - s.position.y];
         distance = Math.sqrt(patternInput_1[0] * patternInput_1[0] + patternInput_1[1] * patternInput_1[1]);
+        ms = 0;
         return false;
       }() : function () {
         ms = ms + dt;
@@ -3621,6 +3687,7 @@ var Behaviors = function (__exports) {
 
         if (result < 1 ? true : d > radius) {
           var factor = distance > 0 ? -1 : 1;
+          s.rotation = a;
           s.position = new PIXI.Point(p.x + d * Math.cos(a) * factor, p.y + d * Math.sin(a) * factor);
           return false;
         } else {
@@ -3628,6 +3695,24 @@ var Behaviors = function (__exports) {
           return true;
         }
       }());
+    };
+  };
+
+  var breathe = __exports.breathe = function breathe(amplitude, speed) {
+    var scale = new PIXI.Point(0, 0);
+    var ms = -1;
+    var a = 0;
+    return function (s, _arg1) {
+      if (ms < 0) {
+        scale = new PIXI.Point(s.scale.x, s.scale.y);
+        ms = 0;
+      } else {
+        a = a + speed;
+        s.scale.x = scale.x + Math.cos(a) * amplitude;
+        s.scale.y = scale.y + Math.cos(a) * amplitude;
+      }
+
+      return _Promise.resolve(false);
     };
   };
 
@@ -3641,19 +3726,64 @@ var Behaviors = function (__exports) {
     };
   };
 
+  var killOffScreen = __exports.killOffScreen = function killOffScreen(bounds, onCompleted) {
+    return function (s, _arg1) {
+      var sx = s.position.x;
+      var sy = s.position.y;
+      var offScreen = ((sx + s.width < bounds.x ? true : sy + s.height < bounds.y) ? true : s.y - s.height >= bounds.height) ? true : sx - s.width > bounds.width;
+
+      if (offScreen) {
+        onCompleted(s);
+        s.Dispose();
+      }
+
+      return _Promise.resolve(offScreen);
+    };
+  };
+
+  var grow = __exports.grow = function grow(easeFunction, duration, max$$1, min$$1) {
+    var ms = -1;
+    var scale = max$$1;
+    var diff = max$$1 - min$$1;
+    return function (s, dt) {
+      ms = ms + dt;
+      var result = easeFunction(ms, 0, 1, duration);
+      scale = min$$1 + result * diff;
+      return _Promise.resolve(scale >= max$$1 ? true : (s.scale = new PIXI.Point(scale, scale), false));
+    };
+  };
+
   return __exports;
 }({});
 function updateLoop(renderer, stage) {
   var centerX = renderer.width * 0.5;
   var centerY = renderer.height * 0.5;
+  var rwidth = renderer.width;
+  var rheight = renderer.height;
+  var maxParticlesByCodeFrequency = 300;
+  var fps = 60;
+  var maxParticlesByFrame = maxParticlesByCodeFrequency / fps;
   var id = -1;
   var state = new State("Loading", []);
   var resources = null;
   var launchers = new List$1();
   var sprites = new List$1();
+  var ghData = new List$1();
+  var trails = new List$1();
+  var rocketsGreen = [];
+  var rocketsYellow = [];
+  var sum$$1 = 0;
+  var plusSum = 0;
+  var minusSum = 0;
   var planet = null;
   var title = null;
   var subtitle = null;
+  var minusBand = null;
+  var plusBand = null;
+  var maskPlus = null;
+  var maskMinus = null;
+  var textPlus = null;
+  var textMinus = null;
 
   var createParticleContainer = function createParticleContainer(max$$1) {
     var options = {
@@ -3665,12 +3795,11 @@ function updateLoop(renderer, stage) {
   };
 
   var backgroundContainer = new PIXI.Container();
-  var yellowContainer = createParticleContainer(500);
-  var minusContainer = createParticleContainer(500);
+  var yellowContainer = createParticleContainer(500000);
+  var minusContainer = createParticleContainer(50000);
   var planetContainer = new PIXI.Container();
-  var greenContainer = createParticleContainer(500);
-  var plusContainer = createParticleContainer(500);
-  var titles = new PIXI.Container();
+  var greenContainer = createParticleContainer(500000);
+  var plusContainer = createParticleContainer(500000);
 
   var bindContainer = function bindContainer(c) {
     stage.addChild(c);
@@ -3678,7 +3807,7 @@ function updateLoop(renderer, stage) {
 
   iterate(function (arg00) {
     bindContainer(arg00);
-  }, [backgroundContainer, yellowContainer, minusContainer, planetContainer, greenContainer, plusContainer, titles]);
+  }, [backgroundContainer, yellowContainer, minusContainer, greenContainer, plusContainer, planetContainer]);
 
   var nextId = function nextId() {
     id = id + 1;
@@ -3726,6 +3855,15 @@ function updateLoop(renderer, stage) {
     };
   };
 
+  var setScale = function setScale(sx) {
+    return function (sy) {
+      return function (s) {
+        s.scale = new PIXI.Point(sx, sy);
+        return s;
+      };
+    };
+  };
+
   var drawRect = function drawRect(g) {
     return function (color) {
       return function (width) {
@@ -3736,6 +3874,13 @@ function updateLoop(renderer, stage) {
           return g;
         };
       };
+    };
+  };
+
+  var setRotation = function setRotation(r) {
+    return function (s) {
+      s.rotation = r;
+      return s;
     };
   };
 
@@ -3751,154 +3896,371 @@ function updateLoop(renderer, stage) {
     return s;
   };
 
+  var updateParticles = function updateParticles(trails_1) {
+    iterate(function (e) {
+      e.sprite.alpha = e.sprite.alpha - e.dec;
+    }, trails_1);
+    return trails_1;
+  };
+
+  var addTrails = function addTrails() {
+    var addTotrails = function addTotrails(t) {
+      trails = new List$1(new Trail(t, 0.005), trails);
+    };
+
+    iterate(function (rocket) {
+      addTotrails(function (arg00) {
+        var clo1 = addToContainer(arg00);
+        return function (arg10) {
+          return clo1(arg10);
+        };
+      }(greenContainer)(setRotation(rocket.rotation)(setAnchor(rocket.anchor.x)(rocket.anchor.y)(setScale(0.2)(0.2)(setAlpha(0.5)(setPosition(rocket.position.x)(rocket.position.y)(makeSprite(getTexture("plus")))))))));
+    }, rocketsGreen);
+    iterate(function (rocket) {
+      addTotrails(function (arg00) {
+        var clo1 = addToContainer(arg00);
+        return function (arg10) {
+          return clo1(arg10);
+        };
+      }(yellowContainer)(setRotation(rocket.rotation)(setAnchor(rocket.anchor.x)(rocket.anchor.y)(setScale(0.2)(0.1)(setAlpha(0.5)(setPosition(rocket.position.x)(rocket.position.y)(makeSprite(getTexture("minus")))))))));
+    }, rocketsYellow);
+  };
+
   var update = function update(currentState) {
-    return currentState.Case === "Loading" ? function () {
-      var onLoadComplete = function onLoadComplete(r) {
-        var endLoadSequence = function endLoadSequence(r_1) {
-          return function (json) {
-            window.document.getElementById("loading").style.display = "none";
-            resources = r_1;
-            var rawData = json;
-            var ghData = map$1(function (inValue) {
-              var out = inValue;
-              console.log(inValue);
-              var timestamp = out[0];
-              var deletion = out[2];
-              return new CodeFrequency(timestamp, out[1], deletion);
-            }, rawData);
-            var sum$$1 = sum(map$1(function (cd) {
-              return cd.addition - cd.deletion;
-            }, ghData));
-            fsFormat("%f")(function (x) {
-              console.log(x);
-            })(sum$$1);
-            state = new State("MainTitle", []);
+    trails = updateParticles(trails);
+    addTrails();
+
+    if (currentState.Case === "Loading") {
+      var _ret = function () {
+        var onLoadComplete = function onLoadComplete(r) {
+          var endLoadSequence = function endLoadSequence(r_1) {
+            return function (json) {
+              window.document.getElementById("loading").style.display = "none";
+              resources = r_1;
+              var rawData = json;
+              ghData = toList(map$1(function (inValue) {
+                var out = inValue;
+                var timestamp = out[0];
+                var deletion = out[2];
+                return new CodeFrequency(timestamp, out[1], deletion);
+              }, rawData));
+              sum$$1 = sum(map$1(function (cd) {
+                return cd.addition - cd.deletion;
+              }, ghData));
+              state = new State("MainTitle", []);
+            };
           };
-        };
 
-        var loadRemoteJson = function loadRemoteJson(r_1) {
-          return function (url) {
-            var now$$1 = today();
-            var key = fsFormat("fable_behaviors_cache_%s")(function (x) {
-              return x;
-            })(toShortDateString(now$$1));
+          var loadRemoteJson = function loadRemoteJson(r_1) {
+            return function (url) {
+              var now$$1 = today();
+              var key = fsFormat("fable_behaviors_cache_%s")(function (x) {
+                return x;
+              })(toShortDateString(now$$1));
 
-            var cached = function (arg00) {
-              return JSON.parse(arg00);
-            }(function (_arg1) {
-              return _arg1 == null ? "[]" : _arg1;
-            }(localStorage.getItem(key)));
+              var cached = function (arg00) {
+                return JSON.parse(arg00);
+              }(function (_arg1) {
+                return _arg1 == null ? "[]" : _arg1;
+              }(localStorage.getItem(key)));
 
-            if (cached.length <= 0) {
-              console.log("not found searching from github");
+              if (cached.length <= 0) {
+                console.log("GitHub data not found in LocalStorage. Retrieveing data from GitHub");
 
-              (function (arg00) {
-                startImmediate(arg00);
-              })(function (builder_) {
-                return builder_.Delay(function () {
-                  return builder_.TryWith(builder_.Delay(function () {
-                    return builder_.Bind(awaitPromise(fetch(url)), function (_arg2) {
-                      return builder_.Bind(awaitPromise(_arg2.json()), function (_arg3) {
-                        localStorage.setItem(key, _JSON$stringify(_arg3));
-                        endLoadSequence(r_1)(_arg3);
-                        return builder_.Zero();
+                (function (arg00) {
+                  startImmediate(arg00);
+                })(function (builder_) {
+                  return builder_.Delay(function () {
+                    return builder_.TryWith(builder_.Delay(function () {
+                      return builder_.Bind(awaitPromise(fetch(url)), function (_arg2) {
+                        return builder_.Bind(awaitPromise(_arg2.json()), function (_arg3) {
+                          localStorage.setItem(key, _JSON$stringify(_arg3));
+                          endLoadSequence(r_1)(_arg3);
+                          return builder_.Zero();
+                        });
                       });
+                    }), function (_arg4) {
+                      throw new Error(fsFormat("could not load json from url %s")(function (x) {
+                        return x;
+                      })(url));
+                      return builder_.Zero();
                     });
-                  }), function (_arg4) {
-                    throw new Error(fsFormat("could not load json from url %s")(function (x) {
-                      return x;
-                    })(url));
-                    return builder_.Zero();
                   });
-                });
-              }(singleton$2));
-            } else {
-              console.log(" found cached");
-              endLoadSequence(r_1)(cached);
-            }
+                }(singleton$2));
+              } else {
+                console.log(fsFormat("Loading GitHub data from LocalStorage (%s)")(function (x) {
+                  return x;
+                })(key));
+                endLoadSequence(r_1)(cached);
+              }
+            };
           };
+
+          loadRemoteJson(r)("https://api.github.com/repos/fable-compiler/Fable/stats/code_frequency");
         };
 
-        loadRemoteJson(r)("https://api.github.com/repos/fable-compiler/Fable/stats/code_frequency");
-      };
-
-      var errorCallback = function errorCallback(e) {
-        console.log(e);
-      };
-
-      var onProgress = function onProgress(e) {
-        console.log(e);
-      };
-
-      var addAssetToLoad = function addAssetToLoad(rawName) {
-        var extractName = function extractName(rawName_1) {
-          var rawName_2 = rawName_1.substr(rawName_1.lastIndexOf("/") + 1);
-          var keys = rawName_2.split(".");
-          return keys[0];
+        var errorCallback = function errorCallback(e) {
+          console.log(e);
         };
 
-        PIXI.loader.add(extractName(rawName), "out/" + rawName);
-      };
+        var onProgress = function onProgress(e) {
+          console.log(e);
+        };
 
-      (function (source) {
-        iterate(addAssetToLoad, source);
-      })(map$1(function (name) {
-        return fsFormat("%s.png")(function (x) {
+        var addAssetToLoad = function addAssetToLoad(rawName) {
+          var extractName = function extractName(rawName_1) {
+            var rawName_2 = rawName_1.substr(rawName_1.lastIndexOf("/") + 1);
+            var keys = rawName_2.split(".");
+            return keys[0];
+          };
+
+          PIXI.loader.add(extractName(rawName), "out/" + rawName);
+        };
+
+        addAssetToLoad("font.fnt");
+
+        (function (source) {
+          iterate(addAssetToLoad, source);
+        })(map$1(function (name) {
+          return fsFormat("%s.png")(function (x) {
+            return x;
+          })(name);
+        }, ofArray(["background", "feedbackgreen", "feedbackyellow", "greentrail", "yellowtrail", "maintitle", "github", "planet", "plus", "minus", "title2", "githubsmall", "minusband", "plusband"])));
+
+        PIXI.loader.on("error", errorCallback);
+        PIXI.loader.load();
+        PIXI.loader.on("progress", onProgress);
+        PIXI.loader.once("complete", function (loader$$1, resources_1) {
+          onLoadComplete(resources_1);
+        });
+        return {
+          v: new State("Nothing", [])
+        };
+      }();
+
+      if ((typeof _ret === "undefined" ? "undefined" : _typeof(_ret)) === "object") return _ret.v;
+    } else {
+      if (currentState.Case === "MainTitle") {
+        setAlpha(0.6)(addToContainer(backgroundContainer)(makeSprite(getTexture("background"))));
+
+        var planetBreathe = function planetBreathe(es) {
+          es.Behave(Behaviors.breathe(0.05, 0.022));
+          return es;
+        };
+
+        planet = setAlpha(0)(setPosition(centerX)(centerY)(setAnchor(0.5)(0.5)(function (arg00) {
+          var clo1 = addToContainer(arg00);
+          return function (arg10) {
+            return clo1(arg10);
+          };
+        }(planetContainer)(addToESprites(planetBreathe(makeESprite(ofArray([Behaviors.fadeOut(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+          return outCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+        }, 3000, function (value) {
+          value;
+        })]))(getTexture("planet"))))))));
+        title = setAlpha(0)(setPosition(planet.position.x)(planet.position.y + 50)(setAnchor(0.5)(0)(function (arg00) {
+          var clo1 = addToContainer(arg00);
+          return function (arg10) {
+            return clo1(arg10);
+          };
+        }(planetContainer)(addToESprites(makeESprite(ofArray([Behaviors.fadeOut(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+          return outCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+        }, 3300, function (s) {
+          fsFormat("done")(function (x) {
+            console.log(x);
+          });
+        })]))(getTexture("title2")))))));
+
+        var launchNext = function launchNext(s) {
+          state = new State("NextDate", []);
+        };
+
+        subtitle = setAlpha(0)(setPosition(title.position.x)(title.position.y + title.height + 5)(setAnchor(0.5)(0)(function (arg00) {
+          var clo1 = addToContainer(arg00);
+          return function (arg10) {
+            return clo1(arg10);
+          };
+        }(planetContainer)(addToESprites(makeESprite(ofArray([Behaviors.fadeOut(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+          return outCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+        }, 3600, launchNext)]))(getTexture("githubsmall")))))));
+        var margin = 480;
+        minusBand = setPosition(centerX - margin)(rheight - 20)(setAnchor(0)(0.5)(addToContainer(planetContainer)(makeSprite(getTexture("minusband")))));
+        plusBand = setPosition(centerX - margin)(rheight - 50)(setAnchor(0)(0.5)(addToContainer(planetContainer)(makeSprite(getTexture("plusband")))));
+        setPosition(plusBand.position.x - 40)(plusBand.position.y)(setAnchor(0)(0.5)(addToContainer(planetContainer)(makeSprite(getTexture("plus")))));
+        setPosition(minusBand.position.x - 42)(minusBand.position.y)(setAnchor(0)(0.5)(addToContainer(planetContainer)(makeSprite(getTexture("minus")))));
+        maskPlus = new PIXI.Graphics();
+        maskPlus.beginFill(16777215);
+        maskPlus.drawRect(0, 0, 1, 20);
+        maskPlus.endFill();
+        planetContainer.addChild(maskPlus);
+        maskPlus.position = new PIXI.Point(plusBand.position.x, plusBand.position.y - 10);
+        plusBand.mask = maskPlus;
+        textPlus = new PIXI.extras.BitmapText("", {
+          font: "20px Josefin Sans",
+          align: "left",
+          tint: 11917213
+        });
+        var text = fsFormat("%i")(function (x) {
           return x;
-        })(name);
-      }, ofArray(["background", "feedbackgreen", "feedbackyellow", "greentrail", "yellowtrail", "maintitle", "github", "planet", "plus", "minus", "font_0", "title2", "githubsmall"])));
-
-      addAssetToLoad("font.fnt");
-      PIXI.loader.on("error", errorCallback);
-      PIXI.loader.load();
-      PIXI.loader.on("progress", onProgress);
-      PIXI.loader.once("complete", function (loader$$1, resources_1) {
-        onLoadComplete(resources_1);
-      });
-      return new State("Nothing", []);
-    }() : currentState.Case === "MainTitle" ? function () {
-      addToContainer(backgroundContainer)(makeSprite(getTexture("background")));
-      planet = setAlpha(0)(setPosition(centerX)(centerY)(setAnchor(0.5)(0.5)(function (arg00) {
-        var clo1 = addToContainer(arg00);
-        return function (arg10) {
-          return clo1(arg10);
-        };
-      }(planetContainer)(addToESprites(makeESprite(ofArray([Behaviors.fadeOut(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
-        return outCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
-      }, 3000, function (s) {
-        fsFormat("done")(function (x) {
-          console.log(x);
+        })(~~Math.ceil(plusSum));
+        textPlus.text = text;
+        textPlus.position = new PIXI.Point(plusBand.position.x + maskPlus.width + 20, plusBand.position.y - 10);
+        planetContainer.addChild(textPlus);
+        maskMinus = new PIXI.Graphics();
+        maskMinus.beginFill(16777215);
+        maskMinus.drawRect(0, 0, 1, 20);
+        maskMinus.endFill();
+        planetContainer.addChild(maskMinus);
+        maskMinus.position = new PIXI.Point(minusBand.position.x, minusBand.position.y - 10);
+        minusBand.mask = maskMinus;
+        textMinus = new PIXI.extras.BitmapText("", {
+          font: "20px Josefin Sans",
+          align: "left",
+          tint: 16751360
         });
-      })]))(getTexture("planet")))))));
-      title = setAlpha(0)(setPosition(planet.position.x)(planet.position.y + 50)(setAnchor(0.5)(0)(function (arg00) {
-        var clo1 = addToContainer(arg00);
-        return function (arg10) {
-          return clo1(arg10);
-        };
-      }(planetContainer)(addToESprites(makeESprite(ofArray([Behaviors.fadeOut(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
-        return outCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
-      }, 3300, function (s) {
-        fsFormat("done")(function (x) {
-          console.log(x);
-        });
-      })]))(getTexture("title2")))))));
+        var text_1 = fsFormat("%i")(function (x) {
+          return x;
+        })(~~Math.ceil(minusSum));
+        textMinus.text = text_1;
+        textMinus.position = new PIXI.Point(plusBand.position.x + maskMinus.width + 20, minusBand.position.y - 10);
+        planetContainer.addChild(textMinus);
+        return new State("Play", []);
+      } else {
+        if (currentState.Case === "NextDate") {
+          yellowContainer.removeChildren();
+          greenContainer.removeChildren();
+          rocketsYellow = [];
+          rocketsGreen = [];
+          trails = new List$1();
+          {
+            var matchValue = tryHead(ghData);
 
-      var launchNext = function launchNext(s) {
-        fsFormat("done")(function (x) {
-          console.log(x);
-        });
-      };
+            if (matchValue == null) {
+              fsFormat("gameover")(function (x) {
+                console.log(x);
+              });
+            } else {
+              (function () {
+                var ratio = 0.003;
+                plusSum = plusSum + matchValue.addition;
+                var addPct = plusSum / sum$$1 * 1000;
+                maskPlus.scale.x = addPct;
+                var text = fsFormat("[ + ] %i")(function (x) {
+                  return x;
+                })(~~Math.ceil(plusSum));
+                textPlus.text = text;
+                textPlus.position = new PIXI.Point(plusBand.position.x + maskPlus.scale.x + 10, plusBand.position.y - 10);
+                var plusCount = ~~Math.ceil(matchValue.addition * ratio);
+                var deletions = -matchValue.deletion;
+                minusSum = minusSum + deletions;
+                var addPct_1 = minusSum / sum$$1 * 1000;
+                maskMinus.scale.x = addPct_1;
+                var text_1 = fsFormat("[ - ] %i")(function (x) {
+                  return x;
+                })(~~Math.ceil(minusSum));
+                textMinus.text = text_1;
+                textMinus.position = new PIXI.Point(plusBand.position.x + maskMinus.scale.x + 10, minusBand.position.y - 10);
+                var minusCount = ~~Math.ceil(deletions * ratio);
+                fsFormat("%i")(function (x) {
+                  console.log(x);
+                })(minusCount);
 
-      subtitle = setAlpha(0)(setPosition(title.position.x)(title.position.y + title.height + 5)(setAnchor(0.5)(0)(function (arg00) {
-        var clo1 = addToContainer(arg00);
-        return function (arg10) {
-          return clo1(arg10);
-        };
-      }(planetContainer)(addToESprites(makeESprite(ofArray([Behaviors.fadeOut(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
-        return outCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
-      }, 3600, launchNext)]))(getTexture("githubsmall")))))));
-      return new State("Play", []);
-    }() : currentState.Case === "Play" ? new State("Play", []) : new State("Nothing", []);
+                var addToRockets = function addToRockets(s) {
+                  rocketsGreen[rocketsGreen.length] = s;
+                  return s;
+                };
+
+                var addToRocketsYellow = function addToRocketsYellow(s) {
+                  rocketsYellow[rocketsYellow.length] = s;
+                  return s;
+                };
+
+                var nextState = function nextState() {
+                  state = new State("NextDate", []);
+                };
+
+                window.setTimeout(nextState, 3500);
+                var time = 1000;
+                var addTime = 2000 / plusCount;
+                iterate(function (i) {
+                  var onComplete = function onComplete(s) {
+                    s.Behave(Behaviors.fade(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+                      return linear(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+                    }, 100));
+                  };
+
+                  var posX = centerX + Math.cos((Math.random() + 0.01) * 360 * PIXI.DEG_TO_RAD) * 1200;
+                  var posY = centerY + Math.sin((Math.random() + 0.01) * 360 * PIXI.DEG_TO_RAD) * 1200;
+                  addToRockets(setPosition(posX)(posY)(setAnchor(0.5)(0.5)(function (arg00) {
+                    var clo1 = addToContainer(arg00);
+                    return function (arg10) {
+                      return clo1(arg10);
+                    };
+                  }(plusContainer)(addToESprites(makeESprite(ofArray([Behaviors.curveTo(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+                    return linear(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+                  }, time + i * addTime, 10, new PIXI.Point(centerX, centerY), onComplete), Behaviors.alphaDeath(function (value) {
+                    value;
+                  })]))(getTexture("plus")))))));
+                }, range(0, plusCount));
+                var addTime_1 = 2000 / minusCount;
+                iterate(function (i) {
+                  var onComplete = function onComplete(s) {
+                    s.Behave(Behaviors.fade(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+                      return linear(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+                    }, 100));
+                  };
+
+                  var posX = centerX + Math.cos((Math.random() + 0.01) * 360 * PIXI.DEG_TO_RAD) * 1200;
+                  var posY = centerY + Math.sin((Math.random() + 0.01) * 360 * PIXI.DEG_TO_RAD) * 1200;
+                  var p = new PIXI.Point(posX, posY);
+                  addToRocketsYellow(setPosition(centerX)(centerY)(setAnchor(0.5)(0.5)(function (arg00) {
+                    var clo1 = addToContainer(arg00);
+                    return function (arg10) {
+                      return clo1(arg10);
+                    };
+                  }(minusContainer)(addToESprites(makeESprite(ofArray([Behaviors.curveTo(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+                    return inCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+                  }, time + i * addTime_1, 100, p, onComplete), Behaviors.fade(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+                    return linear(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+                  }, time + i * addTime_1), Behaviors.alphaDeath(function (value) {
+                    value;
+                  })]))(getTexture("minus")))))));
+                }, range(0, minusCount));
+                var date$$1 = create$8(1970, 0, 0, 0, 0, 0);
+                var date_1 = addSeconds(date$$1, matchValue.timestamp);
+                var date_2 = toLongDateString(date_1);
+                var text_2 = new PIXI.extras.BitmapText(date_2, {
+                  font: "25px Josefin Sans",
+                  align: "left",
+                  tint: 16777215
+                });
+                addToContainer(planetContainer)(setPosition(130)(plusBand.position.y - 30)(function (arg00) {
+                  var clo1 = setAnchor(arg00);
+                  return function (arg10) {
+                    var clo2 = clo1(arg10);
+                    return function (arg20) {
+                      return clo2(arg20);
+                    };
+                  };
+                }(0.5)(0.5)(addToESprites(makeESprite(ofArray([Behaviors.fade(function (delegateArg0, delegateArg1, delegateArg2, delegateArg3) {
+                  return inCubic(delegateArg0, delegateArg1, delegateArg2, delegateArg3);
+                }, 3500), Behaviors.alphaDeath(function (value) {
+                  value;
+                })]))(text_2.generateTexture(renderer))))));
+                ghData = ghData.tail;
+              })();
+            }
+          }
+          return new State("Play", []);
+        } else {
+          if (currentState.Case === "Play") {
+            return new State("Play", []);
+          } else {
+            return new State("Nothing", []);
+          }
+        }
+      }
+    }
   };
 
   var updateLoop_1 = function updateLoop_1(render) {
@@ -3956,6 +4318,7 @@ exports.ESprite = ESprite;
 exports.State = State;
 exports.CodeFrequency = CodeFrequency;
 exports.Launcher = Launcher;
+exports.Trail = Trail;
 exports.Behaviors = Behaviors;
 exports.updateLoop = updateLoop;
 exports.start = start$$1;
