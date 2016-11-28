@@ -8,7 +8,10 @@
 
 #r "../node_modules/fable-core/Fable.Core.dll"
 #r "../node_modules/fable-powerpack/Fable.PowerPack.dll"
+#load "../node_modules/fable-import-fetch/Fable.Import.Fetch.fs"
+#load "../node_modules/fable-import-fetch/Fable.Helpers.Fetch.fs"
 #load "../node_modules/fable-import-pixi/Fable.Import.Pixi.fs"
+#load "Easing.fsx"
 
 open System
 open System.Collections.Generic
@@ -18,6 +21,8 @@ open Fable.Import.PIXI
 open Fable.Import.PIXI.extras
 open Fable.Import
 open Fable.PowerPack
+open Fable.Import.Fetch
+open Fable.Helpers.Fetch
 
 // Types -------------------------------------------
 
@@ -68,71 +73,187 @@ and ESprite(t:Texture, id: string, behaviors: Behavior list) =
 and State =
   | Nothing 
   | Loading 
-  | MainTitle of obj
   | Play 
+  | MainTitle
 
-and RenderingContext private() =
-  let renderer : WebGLRenderer= 
-    WebGLRenderer( 
-      1024., 
-      600., 
-      [
-        Antialias true
-        BackgroundColor ( float 0x020b1e )
-      ]
-    )
-  // our root container 
-  let stage = new Sprite() 
+type CodeFrequency = {
+  timestamp:float;
+  addition:float;
+  deletion:float;
+}
 
-  static let instance = RenderingContext()
-  static member Instance = instance
-  member self.SetInteractive() =
-    stage.interactive <- true// start our loading
-  member self.GetRenderer() =
-    renderer
-  member self.GetKnownRenderer() = 
-    U2.Case2 renderer
-  member self.GetView() = 
-    renderer.view
-  member self.Render() = 
-    renderer.render stage
-  member self.GetRoot() = 
-    stage
-  member self.GetBounds() =
-    Rectangle(0.,0.,renderer.width, renderer.height)
+
+type Easing = Func<float, float, float, float, float>
 
 // Behaviors -------------------------------------------
-
 module Behaviors =
     let private distanceBetween2Points (p1:Point) (p2:Point) =
         let tx = p2.x - p1.x
         let ty = p2.y - p1.y
         JS.Math.sqrt( tx * tx + ty * ty)
-
-    let accelerate(acc: Point) = Behavior(fun s _ ->
-        s.position <- Point(s.position.x * acc.x, s.position.y + acc.y)
-        Promise.lift true)
-
+    let fade(easeFunction: Easing, duration) =
+        let mutable ms = 0.
+        Behavior(fun s dt ->
+            if s.alpha > 0.
+            then
+                ms <- ms + dt
+                let result = easeFunction.Invoke(ms, 0., 1., duration)
+                s.alpha <- 1. - result
+                if s.alpha < 0.
+                then s.alpha <- 0.; true
+                else false
+            else true
+            |> Promise.lift)
+    let fadeOut(easeFunction: Easing, duration) =
+        let mutable ms = 0.
+        Behavior(fun s dt ->
+            if s.alpha <1.
+            then
+                ms <- ms + dt
+                let result = easeFunction.Invoke(ms, 0., 1., duration)
+                s.alpha <- result
+                if s.alpha > 1.
+                then s.alpha <- 1.; true
+                else false
+            else true
+            |> Promise.lift)
+    let alphaDeath(onCompleted) = Behavior(fun s _ ->
+        if s.alpha <= 0.
+        then (s :> IDisposable).Dispose(); onCompleted s; true
+        else false
+        |> Promise.lift)
 
 
 // Animation ------------------------------------------------
 open Behaviors
 
-let updateLoop fps =
+let updateLoop(renderer:WebGLRenderer) (stage:Container) =
+  let centerX = renderer.width * 0.5
+  let centerY = renderer.height * 0.5
+
+  let mutable id = -1
   let mutable state : State = Loading
-  let onLoadComplete = fun(r) -> state <- MainTitle r
+  let mutable resources  = Unchecked.defaultof<loaders.ResourceDictionary>
+  let mutable ghData = Unchecked.defaultof<Array>
+  let mutable sprites : ESprite list = []
+
+  // sprites
+  let mutable planet = Unchecked.defaultof<Sprite>
+  let mutable title = Unchecked.defaultof<Sprite>
+  let mutable subtitle = Unchecked.defaultof<Sprite>
+
+  // prepare our containers  
+  let createParticleContainer max = 
+    let options : ParticleContainerProperties list = [
+                ParticleContainerProperties.Scale true
+                ParticleContainerProperties.Rotation true
+                ParticleContainerProperties.Alpha true
+              ]
+    ParticleContainer(max, options)
 
   let backgroundContainer = Container()
-  let stage = RenderingContext.Instance.GetRoot()
-  stage.addChild backgroundContainer |> ignore
+  let yellowContainer = createParticleContainer 500.
+  let minusContainer = createParticleContainer 500.
+  let planetContainer = Container()
+  let greenContainer = createParticleContainer 500.
+  let plusContainer = createParticleContainer 500.
+  let titles = Container()
+  // add our containers to the stage
+  let bindContainer (c:DisplayObject) = stage.addChild c |> ignore 
+  [|
+      backgroundContainer
+      ;unbox yellowContainer // ParticleContainer is not a Container
+      ;unbox minusContainer // ParticleContainer is not a Container
+      ;planetContainer
+      ;unbox greenContainer // ParticleContainer is not a Container
+      ;unbox plusContainer // ParticleContainer is not a Container
+      ;titles
+  |]
+    |> Seq.iter bindContainer
 
-  let update(state) =
-    match state with 
+  let nextId() = 
+    id <- id + 1
+    sprintf "%i" id    
+  let makeSprite t = 
+    Sprite t
+  let makeESprite (behaviors:Behavior list) (t:Texture)= 
+    new ESprite(t, nextId(), behaviors)
+  let getTexture name = 
+    resources.Item(name).texture
+  let addToContainer (c:Container) (s:Sprite)=
+    c.addChild s |> ignore
+    s
+  let setPosition x y (s:Sprite)= 
+    s.position <- Point(x, y)
+    s
+  let setAnchor x y (s:Sprite)= 
+    s.anchor <- Point(x, y)
+    s
+  let drawRect (g:Graphics) color width height = 
+    g.beginFill(float color) |> ignore
+    g.drawRect(0.,0.,width, height) |> ignore 
+    g.endFill() |> ignore
+    g
+  let setAlpha a (s:Sprite) = 
+    s.alpha <- a
+    s
+  let addToESprites (s:ESprite) = 
+    sprites <- [s] @ sprites
+    s
+    
+  let update(currentState) =
+    match currentState with 
     | Nothing -> State.Nothing
 
     | Loading -> 
-      printfn "start Loading" 
 
+      let onLoadComplete r =
+
+        let endLoadSequence r json =
+          // hide loading bar
+          Browser.window.document.getElementById("loading").style.display <- "none" 
+          // save resources for later usage
+          resources <- unbox<loaders.ResourceDictionary> r
+          // parse json data to get nice array of CodeFrequencyData
+          let rawData : ResizeArray<obj> = unbox json
+          ghData <-
+            rawData
+              |> Seq.map( fun(inValue) ->
+                let out : ResizeArray<float> = unbox inValue
+                {timestamp=out.[0];deletion=out.[2];addition=out.[1]}
+              )
+              |> Seq.toArray
+          
+          state <- MainTitle
+
+        // try to get the code frenquency data from github
+        // ref: https://developer.github.com/v3/repos/statistics/#get-contributors-list-with-additions-deletions-and-commit-counts
+        // test: https://api.github.com/repos/fable-compiler/Fable/stats/code_frequency
+        // Cache the value in local storage to avoid reaching the unauthorized rate limit (60 queries / hour)
+        // ref: https://developer.github.com/v3/#rate-limiting
+        let loadRemoteJson r (url:string) =
+          let now = DateTime.Today
+          let key = sprintf "fable_behaviors_cache_%s" (now.ToShortDateString())
+          let cached = Browser.localStorage.getItem(key) |> unbox<string>
+          match cached with 
+            | null -> 
+              Browser.console.log ( "not found searching from github")
+              async {
+                try
+                  let! records = GlobalFetch.fetch(url) |> Async.AwaitPromise
+                  let! json = records.json() |> Async.AwaitPromise
+                  Browser.localStorage.setItem(key, unbox<string>json)
+                  endLoadSequence r json
+                with
+                | error -> failwith( (sprintf "could not load json from url %s" url) )
+              } |> Async.StartImmediate
+            | _ ->
+              Browser.console.log ( " found cached")
+              endLoadSequence r cached
+
+        loadRemoteJson r "https://api.github.com/repos/fable-compiler/Fable/stats/code_frequency"
+      
+    
       // start Loading
       let errorCallback(e) = Browser.console.log e 
       let onProgress(e) = Browser.console.log e
@@ -146,39 +267,96 @@ let updateLoop fps =
           keys.[0]      
         Globals.loader.add(extractName rawName, "out/" + rawName) |> ignore
 
-      ["background.png"] |> Seq.iter(addAssetToLoad)              
+      ["background"
+        ;"feedbackgreen"
+        ;"feedbackyellow"
+        ;"greentrail"
+        ;"yellowtrail"
+        ;"maintitle"
+        ;"github"
+        ;"planet"
+        ;"plus"
+        ;"minus"
+        ;"font_0"
+        ;"title2"
+        ;"githubsmall"
+      ] 
+        |> Seq.map( fun(name) -> sprintf "%s.png" name)
+        |> Seq.iter(addAssetToLoad)
+
+      addAssetToLoad "font.fnt"
+
       Globals.loader?on("error", errorCallback ) |> ignore
       Globals.loader.load() |> ignore
       Globals.loader?on("progress", onProgress ) |> ignore
       Globals.loader?once("complete", fun loader resources -> onLoadComplete resources ) |> ignore
       Nothing
 
-    | MainTitle(r) ->
-      let resources = unbox<loaders.ResourceDictionary> r
-      printfn "loading done" 
+    | MainTitle ->
+        
+      getTexture "background" 
+        |> makeSprite
+        |> addToContainer backgroundContainer
+        |> ignore
 
-      backgroundContainer.addChild( Sprite(resources.Item("background").texture) ) |> ignore
+      planet <-
+        getTexture "planet" 
+          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3000.)]
+          |> addToESprites
+          |> addToContainer planetContainer
+          |> setAnchor 0.5 0.5
+          |> setPosition centerX centerY
+          |> setAlpha 0.
+
+      title <- 
+        getTexture "title2" 
+          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3000.)]
+          |> addToESprites
+          |> addToContainer planetContainer
+          |> setAnchor 0.5 0.
+          |> setPosition planet.position.x (planet.position.y + 50.) 
+          |> setAlpha 0.
+
+      subtitle <- 
+        getTexture "githubsmall" 
+          |> makeESprite [fadeOut(Easing( Easing.Helpers.outCubic), 3000.)]
+          |> addToESprites
+          |> addToContainer planetContainer
+          |> setAnchor 0.5 0.
+          |> setPosition title.position.x (title.position.y + title.height + 5.) 
+          |> setAlpha 0.
+
+
 
       Play
 
     | Play -> Play
 
   // actual game loop
-  let rec updateLoop(dt:float) =
-    state <- update(state)
-    RenderingContext.Instance.Render()
-    Browser.window.requestAnimationFrame(fun dt -> updateLoop dt) |> ignore
+  let rec updateLoop render (dt:float) =
+    promise {
+        let mutable xs = []
+        for x in sprites do
+            do! x.Update(dt)
+            if not x.IsDisposed then xs <- x::xs
+        return xs }
+    |> Promise.iter(fun sprites ->    
+      state <- update(state)
+      render()
+      Browser.window.requestAnimationFrame(fun dt -> 
+      updateLoop render dt) |> ignore )
 
-  updateLoop
+  updateLoop 
 
-let start divName fps  = 
-  let view = RenderingContext.Instance.GetView()
-  // append renderer to our div element
-  Browser.document.getElementById(divName).appendChild( view ) |> ignore
-  view.style.display <- "block"
-  view.style.margin <- "0 auto"
+let start divName = 
+  let renderer =
+        WebGLRenderer(1024., 600.,
+            [ Antialias true
+              BackgroundColor ( float 0x000000 )])
+  Browser.document.getElementById("game").appendChild(renderer.view) |> ignore
   // start actual game loop
-  updateLoop fps 0.
+  let stage = Container(interactive=true)
+  updateLoop renderer stage (fun () -> renderer.render(stage)) 0.
 
 // start our game
-start "game" 60.
+start "game" 
