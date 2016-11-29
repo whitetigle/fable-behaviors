@@ -15,6 +15,7 @@ Live version: https://whitetigle.github.io/fable-behaviors/
 - Space background made with http://wwwtyro.github.io/space-2d/ (@wwwtyro)
 - Josefin Font from Google Fonts https://fonts.google.com/specimen/Josefin+Sans
 - GitHub logo from https://github.com/logos
+- loading bar from http://loading.io/
 
 Made with :heart: Code by @whitetigle 
 Powered by @fable-compiler :rocket: and @pixijs :sparkles:
