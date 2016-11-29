@@ -16,5 +16,5 @@ Live version: https://whitetigle.github.io/fable-behaviors/
 - Josefin Font from Google Fonts https://fonts.google.com/specimen/Josefin+Sans
 - GitHub logo from https://github.com/logos
 
-Made with :love Code by @whitetigle 
-Powered by @fable-compiler :rocket and @pixijs :party
+Made with :love: Code by @whitetigle 
+Powered by @fable-compiler :rocket: and @pixijs :party:
