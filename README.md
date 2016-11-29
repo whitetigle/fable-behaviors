@@ -17,4 +17,4 @@ Live version: https://whitetigle.github.io/fable-behaviors/
 - GitHub logo from https://github.com/logos
 
 Made with :heart: Code by @whitetigle 
-Powered by @fable-compiler :rocket: and @pixijs :sparkels:
+Powered by @fable-compiler :rocket: and @pixijs :sparkles:
