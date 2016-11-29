@@ -1,4 +1,6 @@
-# Test using Fable and Behaviors with Pixi.js
+![Wip Demo](https://raw.githubusercontent.com/whitetigle/fable-behaviors/master/out/wip.gif)
+
+# Datavis test using Fable and Behaviors with Pixi.js
 
 - `npm install` to install dependencies.
 - `npm run build` to compile the F# code to JS.
