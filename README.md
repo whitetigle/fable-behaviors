@@ -1,4 +1,5 @@
-![Wip Demo](https://raw.githubusercontent.com/whitetigle/fable-behaviors/master/out/wip.gif)
+![Wip Demo](https://raw.githubusercontent.com/whitetigle/fable-behaviors/master/out/wip.png)
+
 
 # Datavis test using Fable and Behaviors with Pixi.js
 
