@@ -10,7 +10,10 @@
 
 Live version: https://whitetigle.github.io/fable-behaviors/
 
-[Note]: if nothing happens after a while. Open the debug console and remove the data from Local Storage under *https://whitetigle.github.io/fable-behaviors/* then refresh the page  
+[Note]: if nothing happens after loading: 
+Open the debug console and remove the data from Local Storage under *https://whitetigle.github.io/fable-behaviors/* then refresh the page  
+That's because Github needs to cache your results first after the first request. So the second request always works.
+
 
 ## Credits
 - Base F# code & project architecture derived from https://github.com/alfonsogarciacaro/fable-pixi-sample1 (@alfonsogarciacaro)
